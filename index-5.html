@@ -1,0 +1,2940 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sewain.aja – Sewa Sepatu Bola & Futsal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Firebase SDKs (compat build — works without bundler, plain <script> tags) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+/* ============================================================
+   RESET & BASE
+============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#0A0A0A;
+  --dark:#111111;
+  --card:#1A1A1A;
+  --border:#2A2A2A;
+  --green:#00C853;
+  --green-dark:#009624;
+  --green-glow:rgba(0,200,83,0.25);
+  --yellow:#FFD600;
+  --white:#FFFFFF;
+  --gray:#888888;
+  --gray-light:#BBBBBB;
+  --red:#FF3D3D;
+  --orange:#FF9800;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 4px 20px rgba(0,0,0,0.4);
+  --shadow-green:0 4px 24px rgba(0,200,83,0.3);
+  --transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--black);
+  color:var(--white);
+  min-height:100vh;
+  overflow-x:hidden;
+  line-height:1.6;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:'Inter',sans-serif;border:none;outline:none}
+input,select,textarea{font-family:'Inter',sans-serif;outline:none}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--dark)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--green)}
+
+/* ============================================================
+   UTILITY
+============================================================ */
+.hidden{display:none!important}
+.flex{display:flex}
+.flex-col{flex-direction:column}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.justify-center{justify-content:center}
+.gap-1{gap:8px}
+.gap-2{gap:12px}
+.gap-3{gap:16px}
+.gap-4{gap:24px}
+.text-green{color:var(--green)}
+.text-yellow{color:var(--yellow)}
+.text-gray{color:var(--gray)}
+.text-red{color:var(--red)}
+.text-sm{font-size:13px}
+.text-xs{font-size:11px}
+.font-bold{font-weight:700}
+.font-600{font-weight:600}
+.w-full{width:100%}
+.mt-1{margin-top:8px}
+.mt-2{margin-top:12px}
+.mt-3{margin-top:16px}
+.mt-4{margin-top:24px}
+.badge{
+  display:inline-block;padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:600;letter-spacing:.3px;
+}
+.badge-green{background:rgba(0,200,83,0.15);color:var(--green);border:1px solid rgba(0,200,83,0.3)}
+.badge-red{background:rgba(255,61,61,0.15);color:var(--red);border:1px solid rgba(255,61,61,0.3)}
+.badge-orange{background:rgba(255,152,0,0.15);color:var(--orange);border:1px solid rgba(255,152,0,0.3)}
+.badge-gray{background:rgba(136,136,136,0.15);color:var(--gray-light);border:1px solid rgba(136,136,136,0.3)}
+
+/* ============================================================
+   BUTTONS
+============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 24px;border-radius:var(--radius-sm);font-weight:600;
+  font-size:14px;transition:var(--transition);letter-spacing:.3px;
+}
+.btn-green{background:var(--green);color:var(--black)}
+.btn-green:hover{background:#00e65c;box-shadow:var(--shadow-green);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--white);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--green);color:var(--green)}
+.btn-red{background:rgba(255,61,61,0.15);color:var(--red);border:1px solid rgba(255,61,61,0.3)}
+.btn-red:hover{background:rgba(255,61,61,0.25)}
+.btn-sm{padding:8px 16px;font-size:13px}
+.btn-xs{padding:5px 12px;font-size:12px;border-radius:6px}
+.btn-yellow{background:var(--yellow);color:var(--black)}
+.btn-yellow:hover{background:#ffe033}
+.btn-dark{background:var(--card);color:var(--white);border:1px solid var(--border)}
+.btn-dark:hover{border-color:var(--green)}
+
+/* ============================================================
+   FORMS
+============================================================ */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--gray-light);margin-bottom:6px;letter-spacing:.3px}
+.form-control{
+  width:100%;background:var(--dark);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:11px 14px;
+  color:var(--white);font-size:14px;transition:var(--transition);
+}
+.form-control:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.form-control::placeholder{color:var(--gray)}
+select.form-control option{background:var(--dark)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ============================================================
+   MODAL
+============================================================ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);
+  z-index:9000;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--dark);border:1px solid var(--border);border-radius:var(--radius);
+  width:100%;max-width:520px;max-height:90vh;overflow-y:auto;
+  animation:modalIn .25s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px;border-bottom:1px solid var(--border);
+}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;background:var(--card);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--gray);cursor:pointer;transition:var(--transition);border:none;
+}
+.modal-close:hover{background:var(--border);color:var(--white)}
+.modal-body{padding:24px}
+.modal-footer{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;gap:12px;justify-content:flex-end;
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+#toast-container{
+  position:fixed;top:20px;right:20px;z-index:99999;
+  display:flex;flex-direction:column;gap:10px;
+}
+.toast{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 18px;font-size:14px;font-weight:500;
+  display:flex;align-items:center;gap:10px;min-width:260px;
+  box-shadow:var(--shadow);animation:toastIn .3s ease;
+}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.warning{border-left:3px solid var(--orange)}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+/* ============================================================
+   LANDING PAGE - NAVBAR
+============================================================ */
+#landing-page{display:block}
+#dashboard-page{display:none}
+
+.navbar{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  padding:0 24px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,10,10,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  transition:var(--transition);
+}
+.nav-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;
+  color:var(--white);display:flex;align-items:center;gap:4px;
+}
+.nav-logo span{color:var(--green)}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-links a{font-size:13px;font-weight:500;color:var(--gray-light);transition:var(--transition);letter-spacing:.3px}
+.nav-links a:hover{color:var(--green)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-wa{
+  display:flex;align-items:center;gap:8px;
+  background:var(--green);color:var(--black);
+  padding:8px 18px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:700;transition:var(--transition);
+}
+.nav-wa:hover{background:#00e65c;transform:translateY(-1px);box-shadow:var(--shadow-green)}
+.nav-dash{
+  background:var(--card);border:1px solid var(--border);
+  color:var(--white);padding:8px 18px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:600;transition:var(--transition);cursor:pointer;
+}
+.nav-dash:hover{border-color:var(--green);color:var(--green)}
+.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px}
+.nav-hamburger span{width:24px;height:2px;background:var(--white);border-radius:2px;transition:var(--transition)}
+.mobile-menu{
+  display:none;position:fixed;top:64px;left:0;right:0;z-index:999;
+  background:var(--dark);border-bottom:1px solid var(--border);
+  padding:16px 24px;flex-direction:column;gap:4px;
+}
+.mobile-menu.open{display:flex}
+.mobile-menu a{padding:12px 0;font-size:14px;font-weight:500;color:var(--gray-light);border-bottom:1px solid var(--border)}
+.mobile-menu a:last-child{border:none}
+.mobile-menu a:hover{color:var(--green)}
+
+/* ============================================================
+   HERO SECTION
+============================================================ */
+.hero{
+  position:relative;min-height:100vh;display:flex;align-items:center;
+  padding:100px 24px 60px;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 80% at 70% 50%, rgba(0,200,83,0.12) 0%, transparent 70%),
+             radial-gradient(ellipse 40% 40% at 20% 80%, rgba(255,214,0,0.08) 0%, transparent 60%);
+}
+/* Hex grid decoration */
+.hero-hex{
+  position:absolute;right:-5%;top:0;bottom:0;width:55%;
+  opacity:0.07;
+  background-image:
+    repeating-linear-gradient(60deg,var(--green) 0,var(--green) 1px,transparent 0,transparent 50%),
+    repeating-linear-gradient(120deg,var(--green) 0,var(--green) 1px,transparent 0,transparent 50%),
+    repeating-linear-gradient(0deg,var(--green) 0,var(--green) 1px,transparent 0,transparent 50%);
+  background-size:40px 70px;
+  mask-image:linear-gradient(to right,transparent 0%,black 30%,black 100%);
+}
+.hero-content{position:relative;z-index:1;max-width:600px}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.25);
+  padding:6px 14px;border-radius:20px;margin-bottom:20px;
+}
+.hero-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.hero-eyebrow span{font-size:12px;font-weight:600;color:var(--green);letter-spacing:1px;text-transform:uppercase}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(52px,8vw,88px);line-height:.95;
+  letter-spacing:1px;margin-bottom:16px;
+}
+.hero h1 em{color:var(--green);font-style:normal}
+.hero h1 .yellow{color:var(--yellow)}
+.hero-sub{font-size:clamp(14px,2vw,17px);color:var(--gray-light);margin-bottom:32px;max-width:460px;line-height:1.7}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero-cta-wa{
+  display:flex;align-items:center;gap:10px;
+  background:var(--green);color:var(--black);
+  padding:14px 28px;border-radius:var(--radius-sm);
+  font-size:15px;font-weight:700;transition:var(--transition);
+  box-shadow:0 0 40px rgba(0,200,83,0.3);
+}
+.hero-cta-wa:hover{background:#00e65c;transform:translateY(-2px);box-shadow:0 0 60px rgba(0,200,83,0.4)}
+.hero-cta-catalog{
+  display:flex;align-items:center;gap:10px;
+  background:transparent;color:var(--white);
+  padding:14px 28px;border-radius:var(--radius-sm);
+  font-size:15px;font-weight:600;transition:var(--transition);
+  border:1px solid rgba(255,255,255,0.2);
+}
+.hero-cta-catalog:hover{border-color:var(--white);background:rgba(255,255,255,0.05)}
+.hero-stats{
+  display:flex;gap:32px;margin-top:48px;padding-top:32px;
+  border-top:1px solid var(--border);
+}
+.hero-stat-num{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--green);line-height:1}
+.hero-stat-label{font-size:12px;color:var(--gray);margin-top:4px;letter-spacing:.3px}
+/* Right side visual */
+.hero-visual{
+  position:absolute;right:0;top:0;bottom:0;width:45%;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.hero-shoe-glow{
+  position:absolute;width:400px;height:400px;
+  border-radius:50%;background:radial-gradient(circle,rgba(0,200,83,0.2) 0%,transparent 70%);
+  animation:floatGlow 4s ease-in-out infinite;
+}
+@keyframes floatGlow{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-20px) scale(1.05)}}
+.hero-shoe-emoji{font-size:160px;animation:floatGlow 4s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(0,200,83,0.4))}
+
+/* ============================================================
+   SECTION COMMONS
+============================================================ */
+.section{padding:80px 24px}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-label{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--green);margin-bottom:12px;
+}
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(36px,5vw,56px);line-height:1;letter-spacing:.5px;
+  margin-bottom:16px;
+}
+.section-sub{font-size:15px;color:var(--gray-light);max-width:500px;line-height:1.7;margin-bottom:48px}
+.slash-divider{
+  display:flex;align-items:center;gap:16px;margin-bottom:48px;
+}
+.slash-divider::before,.slash-divider::after{
+  content:'';flex:1;height:1px;background:linear-gradient(to right,var(--green),transparent);
+}
+.slash-divider::after{background:linear-gradient(to left,var(--green),transparent)}
+
+/* ============================================================
+   FEATURES
+============================================================ */
+.features-bg{background:var(--dark)}
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;
+}
+.feature-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px 24px;transition:var(--transition);position:relative;overflow:hidden;
+}
+.feature-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(to right,var(--green),var(--yellow));
+  transform:scaleX(0);transform-origin:left;transition:var(--transition);
+}
+.feature-card:hover{border-color:var(--green);transform:translateY(-4px);box-shadow:var(--shadow-green)}
+.feature-card:hover::before{transform:scaleX(1)}
+.feature-icon{
+  width:52px;height:52px;border-radius:12px;
+  background:rgba(0,200,83,0.12);border:1px solid rgba(0,200,83,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin-bottom:16px;
+}
+.feature-title{font-size:15px;font-weight:700;margin-bottom:8px}
+.feature-desc{font-size:13px;color:var(--gray);line-height:1.6}
+
+/* ============================================================
+   HOW TO RENT
+============================================================ */
+.steps-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;
+  counter-reset:step;
+}
+.step-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px 20px;position:relative;transition:var(--transition);
+  counter-increment:step;
+}
+.step-card::before{
+  content:counter(step,decimal-leading-zero);
+  font-family:'Bebas Neue',sans-serif;font-size:64px;
+  color:rgba(0,200,83,0.06);position:absolute;top:-8px;right:12px;line-height:1;
+}
+.step-card:hover{border-color:rgba(0,200,83,0.3)}
+.step-icon{font-size:32px;margin-bottom:12px}
+.step-title{font-size:15px;font-weight:700;margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--gray);line-height:1.6}
+
+/* ============================================================
+   CATALOG (PUBLIC)
+============================================================ */
+.catalog-filter{
+  display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;
+}
+.filter-btn{
+  padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;
+  background:var(--card);border:1px solid var(--border);color:var(--gray-light);
+  cursor:pointer;transition:var(--transition);
+}
+.filter-btn.active,.filter-btn:hover{
+  background:rgba(0,200,83,0.12);border-color:var(--green);color:var(--green);
+}
+.catalog-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;
+}
+.shoe-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;transition:var(--transition);
+}
+.shoe-card:hover{border-color:rgba(0,200,83,0.3);transform:translateY(-4px);box-shadow:var(--shadow)}
+.shoe-card-img{
+  height:180px;background:var(--dark);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.shoe-card-img img{width:100%;height:100%;object-fit:cover}
+.shoe-card-img-placeholder{font-size:64px;opacity:0.3}
+.shoe-card-status{
+  position:absolute;top:12px;right:12px;
+}
+.shoe-card-body{padding:16px}
+.shoe-card-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.shoe-card-meta{font-size:12px;color:var(--gray);margin-bottom:12px}
+.shoe-card-price{
+  font-family:'Bebas Neue',sans-serif;font-size:24px;
+  color:var(--green);margin-bottom:12px;
+}
+.shoe-card-price span{font-family:'Inter',sans-serif;font-size:12px;color:var(--gray);font-weight:400}
+.shoe-card-action{width:100%}
+
+/* ============================================================
+   LOCATION
+============================================================ */
+.location-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}
+.location-info{display:flex;flex-direction:column;gap:20px}
+.location-item{display:flex;gap:16px;align-items:flex-start}
+.location-icon{
+  width:44px;height:44px;border-radius:10px;
+  background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.2);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.location-item-title{font-size:13px;color:var(--gray);margin-bottom:4px}
+.location-item-val{font-size:15px;font-weight:600}
+.location-map{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  height:280px;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:24px;
+}
+
+/* ============================================================
+   FAQ
+============================================================ */
+.faq-list{max-width:720px}
+.faq-item{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;overflow:hidden}
+.faq-question{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:18px 20px;cursor:pointer;font-weight:600;font-size:14px;
+  transition:var(--transition);user-select:none;
+}
+.faq-question:hover{color:var(--green)}
+.faq-chevron{transition:transform .3s ease;font-size:12px;color:var(--gray)}
+.faq-item.open .faq-chevron{transform:rotate(180deg);color:var(--green)}
+.faq-answer{
+  max-height:0;overflow:hidden;transition:max-height .3s ease;
+  padding:0 20px;color:var(--gray-light);font-size:14px;line-height:1.7;
+}
+.faq-item.open .faq-answer{max-height:200px;padding:0 20px 18px}
+
+/* ============================================================
+   FLOATING WA BUTTON
+============================================================ */
+.wa-float{
+  position:fixed;bottom:28px;right:24px;z-index:5000;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--green);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,200,83,0.4),0 0 0 0 rgba(0,200,83,0.4);
+  transition:var(--transition);animation:waPulse 3s infinite;
+  cursor:pointer;
+}
+.wa-float:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(0,200,83,0.6)}
+.wa-float svg{width:28px;height:28px;fill:var(--black)}
+@keyframes waPulse{0%,100%{box-shadow:0 4px 20px rgba(0,200,83,0.4),0 0 0 0 rgba(0,200,83,0.4)}50%{box-shadow:0 4px 20px rgba(0,200,83,0.4),0 0 0 14px rgba(0,200,83,0)}}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+.footer{background:var(--dark);border-top:1px solid var(--border);padding:48px 24px 24px}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-brand-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:28px;margin-bottom:12px;
+}
+.footer-brand-logo span{color:var(--green)}
+.footer-brand-desc{font-size:13px;color:var(--gray);line-height:1.7;margin-bottom:16px}
+.footer-social{display:flex;gap:10px}
+.footer-social a{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:var(--transition);
+}
+.footer-social a:hover{border-color:var(--green);color:var(--green)}
+.footer-col h4{font-size:13px;font-weight:700;letter-spacing:.5px;margin-bottom:16px;color:var(--white)}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-col ul li a{font-size:13px;color:var(--gray);transition:var(--transition)}
+.footer-col ul li a:hover{color:var(--green)}
+.footer-bottom{
+  padding-top:24px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+}
+.footer-copy{font-size:12px;color:var(--gray)}
+
+/* ============================================================
+   DASHBOARD - LAYOUT
+============================================================ */
+.dash-wrapper{display:flex;min-height:100vh}
+
+/* Sidebar */
+.dash-sidebar{
+  width:220px;background:var(--dark);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:200;
+  transition:transform .3s ease;
+}
+.dash-sidebar-logo{
+  padding:24px 20px;border-bottom:1px solid var(--border);
+  font-family:'Bebas Neue',sans-serif;font-size:24px;
+}
+.dash-sidebar-logo span{color:var(--green)}
+.dash-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+.dash-nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:600;color:var(--gray);
+  cursor:pointer;transition:var(--transition);border:none;background:transparent;
+  width:100%;text-align:left;
+}
+.dash-nav-item:hover{background:var(--card);color:var(--white)}
+.dash-nav-item.active{background:rgba(0,200,83,0.12);color:var(--green);border:1px solid rgba(0,200,83,0.2)}
+.dash-nav-icon{font-size:16px;width:20px;text-align:center}
+.dash-sidebar-footer{
+  padding:16px 12px;border-top:1px solid var(--border);
+}
+.dash-to-landing{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;
+  border-radius:var(--radius-sm);font-size:13px;font-weight:600;
+  color:var(--gray);cursor:pointer;transition:var(--transition);
+  width:100%;background:transparent;border:none;
+}
+.dash-to-landing:hover{color:var(--white);background:var(--card)}
+
+/* Main content */
+.dash-main{
+  margin-left:220px;flex:1;min-height:100vh;
+  display:flex;flex-direction:column;
+}
+.dash-topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(17,17,17,0.95);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.dash-page-title{font-size:16px;font-weight:700}
+.dash-topbar-right{display:flex;align-items:center;gap:16px}
+.dash-hamburger{
+  display:none;flex-direction:column;gap:5px;cursor:pointer;
+  background:none;border:none;padding:4px;
+}
+.dash-hamburger span{width:22px;height:2px;background:var(--white);border-radius:2px}
+.dash-content{padding:24px;flex:1}
+
+/* Dashboard page panels */
+.dash-panel{display:none}
+.dash-panel.active{display:block}
+
+/* ============================================================
+   DASHBOARD - STATS CARDS
+============================================================ */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;
+  margin-bottom:24px;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;
+}
+.stat-card::after{
+  content:'';position:absolute;bottom:-20px;right:-20px;
+  width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle,currentColor 0%,transparent 70%);
+  opacity:0.08;
+}
+.stat-card.green{color:var(--green)}
+.stat-card.yellow{color:var(--yellow)}
+.stat-card.red{color:var(--red)}
+.stat-card.blue{color:#60A5FA}
+.stat-icon{font-size:22px;margin-bottom:12px}
+.stat-num{
+  font-family:'Bebas Neue',sans-serif;font-size:40px;
+  color:var(--white);line-height:1;margin-bottom:4px;
+}
+.stat-label{font-size:12px;color:var(--gray);font-weight:500}
+
+/* ============================================================
+   DASHBOARD - TABLES & LISTS
+============================================================ */
+.dash-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;
+}
+.dash-card-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.dash-card-title{font-size:14px;font-weight:700}
+.dash-card-body{padding:20px}
+.dash-table{width:100%;border-collapse:collapse}
+.dash-table th{
+  text-align:left;padding:10px 14px;font-size:11px;
+  font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--gray);border-bottom:1px solid var(--border);background:var(--dark);
+}
+.dash-table td{
+  padding:12px 14px;font-size:13px;
+  border-bottom:1px solid rgba(42,42,42,0.6);vertical-align:middle;
+}
+.dash-table tr:last-child td{border-bottom:none}
+.dash-table tr:hover td{background:rgba(255,255,255,0.02)}
+.dash-table .shoe-thumb{
+  width:40px;height:40px;border-radius:8px;
+  background:var(--dark);object-fit:cover;
+}
+.empty-state{
+  text-align:center;padding:48px 24px;
+}
+.empty-icon{font-size:48px;opacity:.3;margin-bottom:12px}
+.empty-text{font-size:14px;color:var(--gray)}
+
+/* Inventory grid view */
+.inv-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;
+}
+.inv-card{
+  background:var(--dark);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;transition:var(--transition);
+}
+.inv-card:hover{border-color:rgba(0,200,83,0.35);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,0.4)}
+.inv-card-img{
+  height:160px;background:#FFFFFF;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.inv-card-img img{
+  width:100%;height:100%;object-fit:contain;
+  padding:10px;
+}
+.inv-card-img-placeholder{
+  font-size:64px;opacity:.12;filter:grayscale(1);
+}
+.inv-card-status{
+  position:absolute;top:10px;right:10px;
+}
+/* Override badge style for inventory status pill (matches mockup pill shape) */
+.inv-card-status .badge{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.2px;
+}
+.inv-card-body{padding:14px 14px 12px}
+.inv-card-name{
+  font-size:14px;font-weight:700;margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--white);
+}
+.inv-card-meta{font-size:12px;color:var(--gray);margin-bottom:10px}
+.inv-card-price{
+  font-size:16px;font-weight:800;color:var(--green);
+  margin-bottom:12px;letter-spacing:-.2px;
+}
+.inv-card-price span{font-size:12px;font-weight:400;color:var(--gray)}
+.inv-card-actions{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;
+}
+.inv-card-actions .btn-xs{
+  padding:7px 0;font-size:12px;font-weight:700;
+  border-radius:8px;text-align:center;justify-content:center;
+}
+/* Detail button - dark outlined */
+.inv-btn-detail{
+  background:transparent;color:var(--white);
+  border:1px solid var(--border);border-radius:8px;
+  padding:7px 0;font-size:12px;font-weight:700;cursor:pointer;
+  transition:var(--transition);
+}
+.inv-btn-detail:hover{border-color:var(--green);color:var(--green)}
+/* Edit button - dark outlined */
+.inv-btn-edit{
+  background:transparent;color:var(--white);
+  border:1px solid var(--border);border-radius:8px;
+  padding:7px 0;font-size:12px;font-weight:700;cursor:pointer;
+  transition:var(--transition);
+}
+.inv-btn-edit:hover{border-color:var(--green);color:var(--green)}
+/* Hapus button - red filled */
+.inv-btn-hapus{
+  background:rgba(220,38,38,0.18);color:#ef4444;
+  border:1px solid rgba(220,38,38,0.3);border-radius:8px;
+  padding:7px 0;font-size:12px;font-weight:700;cursor:pointer;
+  transition:var(--transition);
+}
+.inv-btn-hapus:hover{background:rgba(220,38,38,0.3);border-color:#ef4444}
+
+/* Search & filter bar */
+.search-filter-bar{
+  display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
+}
+.search-input{
+  flex:1;min-width:200px;background:var(--dark);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 14px;
+  color:var(--white);font-size:13px;transition:var(--transition);
+}
+.search-input:focus{border-color:var(--green)}
+.search-input::placeholder{color:var(--gray)}
+.filter-select{
+  background:var(--dark);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px 14px;
+  color:var(--white);font-size:13px;min-width:130px;cursor:pointer;
+  transition:var(--transition);
+}
+.filter-select:focus{border-color:var(--green)}
+.filter-select option{background:var(--dark)}
+
+/* ============================================================
+   CATEGORY MANAGEMENT
+============================================================ */
+.cat-list{display:flex;flex-direction:column;gap:8px}
+.cat-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:14px 16px;
+}
+.cat-item-name{font-size:14px;font-weight:600}
+.cat-item-count{font-size:12px;color:var(--gray)}
+.cat-item-actions{display:flex;gap:8px}
+
+/* ============================================================
+   PHOTO UPLOAD PREVIEW
+============================================================ */
+.photo-upload-area{
+  border:2px dashed var(--border);border-radius:var(--radius);
+  padding:40px;text-align:center;cursor:pointer;
+  transition:var(--transition);position:relative;
+}
+.photo-upload-area:hover,.photo-upload-area.drag-over{
+  border-color:var(--green);background:rgba(0,200,83,0.04);
+}
+.photo-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.photo-preview{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;
+}
+.photo-preview-item{
+  position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;
+  border:1px solid var(--border);
+}
+.photo-preview-item img{width:100%;height:100%;object-fit:cover}
+.photo-preview-remove{
+  position:absolute;top:4px;right:4px;
+  width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;cursor:pointer;color:var(--white);border:none;
+}
+
+/* ============================================================
+   TRANSACTION DETAIL
+============================================================ */
+.txn-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.txn-detail-item{}
+.txn-detail-label{font-size:11px;color:var(--gray);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.txn-detail-val{font-size:14px;font-weight:600}
+
+/* ============================================================
+   SETTINGS
+============================================================ */
+.setting-section{margin-bottom:32px}
+.setting-section h3{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--gray-light);letter-spacing:.5px;text-transform:uppercase}
+.setting-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:16px 20px;margin-bottom:8px;
+}
+.setting-row-info{}
+.setting-row-title{font-size:14px;font-weight:600;margin-bottom:2px}
+.setting-row-desc{font-size:12px;color:var(--gray)}
+
+/* ============================================================
+   CALENDAR VIEW
+============================================================ */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cal-nav{display:flex;gap:8px}
+.cal-nav-btn{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--dark);border:1px solid var(--border);
+  color:var(--white);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);
+}
+.cal-nav-btn:hover{border-color:var(--green);color:var(--green)}
+.cal-month-label{font-family:'Bebas Neue',sans-serif;font-size:28px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day-label{
+  text-align:center;padding:10px 4px;font-size:11px;
+  font-weight:700;color:var(--gray);letter-spacing:.5px;text-transform:uppercase;
+}
+.cal-day{
+  min-height:64px;background:var(--dark);border:1px solid var(--border);
+  border-radius:8px;padding:8px;font-size:12px;cursor:pointer;
+  transition:var(--transition);
+}
+.cal-day:hover{border-color:rgba(0,200,83,0.3)}
+.cal-day.today{border-color:var(--green);background:rgba(0,200,83,0.06)}
+.cal-day.other-month{opacity:.3}
+.cal-day-num{font-weight:700;margin-bottom:4px}
+.cal-day-dot{width:6px;height:6px;border-radius:50%;margin:2px 0}
+.cal-day-dot.rental{background:var(--green)}
+.cal-day-dot.return{background:var(--yellow)}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media(max-width:900px){
+  .nav-links{display:none}
+  .nav-hamburger{display:flex}
+  .hero-visual{display:none}
+  .hero{min-height:auto;padding-top:100px;padding-bottom:60px}
+  .location-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+  .dash-sidebar{transform:translateX(-100%)}
+  .dash-sidebar.open{transform:translateX(0)}
+  .dash-main{margin-left:0}
+  .dash-hamburger{display:flex}
+  .form-row{grid-template-columns:1fr}
+  .txn-detail-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .hero h1{font-size:48px}
+  .hero-stats{gap:20px}
+  .footer-top{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .cal-grid{gap:2px}
+  .cal-day{min-height:50px;padding:4px}
+  .cal-day-label{font-size:9px}
+  .inv-grid{grid-template-columns:1fr 1fr}
+  .inv-card-img{height:150px}
+  .dash-table td,.dash-table th{padding:8px}
+}
+
+/* Sidebar overlay for mobile */
+.dash-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;
+}
+.dash-overlay.open{display:block}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+<div id="toast-container"></div>
+
+<!-- ============================================================
+     FLOATING WHATSAPP
+============================================================ -->
+<a class="wa-float" href="https://wa.me/62082332651558" target="_blank" rel="noopener" title="Hubungi via WhatsApp">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
+
+<!-- ============================================================
+     ========== LANDING PAGE ==========
+============================================================ -->
+<div id="landing-page">
+
+<!-- NAVBAR -->
+<nav class="navbar" id="main-navbar">
+  <a href="#" class="nav-logo">sewain<span>.aja</span></a>
+  <div class="nav-links">
+    <a href="#features">Keunggulan</a>
+    <a href="#cara-sewa">Cara Sewa</a>
+    <a href="#catalog">Katalog</a>
+    <a href="#lokasi">Lokasi</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <div class="nav-right">
+    <a class="nav-wa" href="https://wa.me/6282332651558" target="_blank">
+      <span>💬</span> WhatsApp
+    </a>
+    <button class="nav-dash" onclick="showDashboard()">Dashboard ↗</button>
+    <div class="nav-hamburger" onclick="toggleMobileMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#features" onclick="closeMobileMenu()">Keunggulan</a>
+  <a href="#cara-sewa" onclick="closeMobileMenu()">Cara Sewa</a>
+  <a href="#catalog" onclick="closeMobileMenu()">Katalog</a>
+  <a href="#lokasi" onclick="closeMobileMenu()">Lokasi</a>
+  <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+  <a href="https://wa.me/6282332651558" target="_blank">💬 WhatsApp Sekarang</a>
+  <a href="#" onclick="showDashboard();closeMobileMenu()">⚙️ Dashboard</a>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-hex"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-dot"></div>
+      <span>Sewa Sepatu Bola & Futsal</span>
+    </div>
+    <h1>Sewa <em>Sepatu</em><br><span class="yellow">Bola & Futsal</span><br>Praktis & Cepat</h1>
+    <p class="hero-sub">Tersedia berbagai pilihan sepatu berkualitas untuk bola dan futsal dengan harga terjangkau. Mulai Rp15.000/hari. Lokasi di Jambidan, Bantul.</p>
+    <div class="hero-ctas">
+      <a class="hero-cta-wa" href="https://wa.me/6282332651558?text=Halo%20sewain.aja!%20Saya%20ingin%20sewa%20sepatu%20bola/futsal." target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Sewa Sekarang via WhatsApp
+      </a>
+      <a class="hero-cta-catalog" href="#catalog">
+        Lihat Katalog <span>↓</span>
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num" id="hero-stat-total">0</div>
+        <div class="hero-stat-label">Total Sepatu</div>
+      </div>
+      <div>
+        <div class="hero-stat-num" id="hero-stat-avail">0</div>
+        <div class="hero-stat-label">Tersedia Sekarang</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">15rb</div>
+        <div class="hero-stat-label">Mulai / Hari</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-shoe-glow"></div>
+    <div class="hero-shoe-emoji">⚽</div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="section features-bg" id="features">
+  <div class="section-inner">
+    <div class="section-label">✦ Keunggulan Kami</div>
+    <h2 class="section-title">Kenapa Pilih <span style="color:var(--green)">sewain.aja</span>?</h2>
+    <p class="section-sub">Kami hadir untuk memudahkan kamu bermain bola tanpa perlu beli sepatu. Praktis, terjangkau, dan berkualitas.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🧹</div>
+        <div class="feature-title">Sepatu Terawat</div>
+        <div class="feature-desc">Setiap sepatu dibersihkan dan diperiksa sebelum dan sesudah penyewaan untuk menjaga higienitas dan kualitas.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <div class="feature-title">Harga Terjangkau</div>
+        <div class="feature-desc">Mulai Rp15.000/hari. Tidak perlu beli sepatu mahal, cukup sewa dan main sepuasnya.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👟</div>
+        <div class="feature-title">Banyak Pilihan</div>
+        <div class="feature-desc">Tersedia sepatu bola dan futsal dari berbagai merek dan ukuran untuk semua kebutuhan permainanmu.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Mudah & Cepat</div>
+        <div class="feature-desc">Proses sewa mudah dan cepat. Cukup hubungi via WhatsApp, datang, dan langsung bisa bermain.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <div class="feature-title">Lokasi Strategis</div>
+        <div class="feature-desc">Berlokasi di Jambidan Lor, Jambidan, Banguntapan, Bantul—mudah dijangkau dari berbagai arah.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <div class="feature-title">CS via WhatsApp</div>
+        <div class="feature-desc">Ada pertanyaan? Langsung hubungi kami via WhatsApp. Respons cepat dan ramah.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CARA SEWA ===== -->
+<section class="section" id="cara-sewa">
+  <div class="section-inner">
+    <div class="section-label">✦ Cara Sewa</div>
+    <h2 class="section-title">Mudah Dalam <span style="color:var(--yellow)">4 Langkah</span></h2>
+    <p class="section-sub">Proses penyewaan yang simpel dan tidak ribet agar kamu bisa fokus bermain.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-icon">👟</div>
+        <div class="step-title">Pilih Sepatu</div>
+        <div class="step-desc">Lihat katalog sepatu yang tersedia dan pilih sesuai kategori (bola/futsal) dan ukuranmu.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">💬</div>
+        <div class="step-title">Hubungi Kami</div>
+        <div class="step-desc">Hubungi kami via WhatsApp di nomor 082332651558 dan beritahu sepatu yang dipilih.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">🏃</div>
+        <div class="step-title">Ambil Sepatu</div>
+        <div class="step-desc">Datang ke lokasi kami di Jambidan, ambil sepatu, dan lakukan pembayaran sewa.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">⚽</div>
+        <div class="step-title">Bayar & Pakai</div>
+        <div class="step-desc">Bayar sesuai durasi sewa, gunakan sepatumu, dan kembalikan tepat waktu setelah selesai.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CATALOG ===== -->
+<section class="section features-bg" id="catalog">
+  <div class="section-inner">
+    <div class="section-label">✦ Katalog Sepatu</div>
+    <h2 class="section-title">Pilihan <span style="color:var(--green)">Sepatu</span> Kami</h2>
+    <p class="section-sub">Sepatu bola dan futsal berkualitas siap disewa untuk mendukung penampilanmu di lapangan.</p>
+    <div class="catalog-filter" id="catalog-filter">
+      <button class="filter-btn active" data-cat="semua" onclick="filterCatalog('semua',this)">Semua</button>
+      <button class="filter-btn" data-cat="Bola" onclick="filterCatalog('Bola',this)">⚽ Bola</button>
+      <button class="filter-btn" data-cat="Futsal" onclick="filterCatalog('Futsal',this)">🏟️ Futsal</button>
+    </div>
+    <div class="catalog-grid" id="public-catalog"></div>
+  </div>
+</section>
+
+<!-- ===== LOCATION ===== -->
+<section class="section" id="lokasi">
+  <div class="section-inner">
+    <div class="section-label">✦ Lokasi Kami</div>
+    <h2 class="section-title">Temukan <span style="color:var(--yellow)">Kami</span></h2>
+    <div class="location-grid">
+      <div class="location-info">
+        <div class="location-item">
+          <div class="location-icon">📍</div>
+          <div>
+            <div class="location-item-title">Alamat</div>
+            <div class="location-item-val">Jambidan Lor, Jambidan, Banguntapan, Bantul, Daerah Istimewa Yogyakarta</div>
+          </div>
+        </div>
+        <div class="location-item">
+          <div class="location-icon">💬</div>
+          <div>
+            <div class="location-item-title">WhatsApp</div>
+            <div class="location-item-val">082332651558</div>
+          </div>
+        </div>
+        <div class="location-item">
+          <div class="location-icon">🕐</div>
+          <div>
+            <div class="location-item-title">Jam Operasional</div>
+            <div class="location-item-val">Senin – Minggu, 07.00 – 21.00 WIB</div>
+          </div>
+        </div>
+        <a href="https://wa.me/6282332651558?text=Halo%20sewain.aja!%20Saya%20ingin%20tanya%20lokasi%20lengkap." target="_blank" class="btn btn-green" style="max-width:260px">
+          💬 Tanya Lokasi via WA
+        </a>
+      </div>
+      <div>
+        <div class="location-map">
+          <div>
+            <div style="font-size:48px;margin-bottom:12px">🗺️</div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:8px">Jambidan Lor, Banguntapan</div>
+            <div style="font-size:13px;color:var(--gray);margin-bottom:16px">Bantul, Daerah Istimewa Yogyakarta</div>
+            <a href="https://maps.google.com/?q=Jambidan+Lor+Jambidan+Banguntapan+Bantul" target="_blank" class="btn btn-outline btn-sm">
+              🗺️ Buka di Google Maps
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="section features-bg" id="faq">
+  <div class="section-inner">
+    <div class="section-label">✦ Pertanyaan Umum</div>
+    <h2 class="section-title">FAQ</h2>
+    <div class="faq-list" id="faq-list">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Berapa harga sewa sepatu bola dan futsal?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Harga sewa dimulai dari Rp15.000/hari untuk sepatu bola maupun futsal. Harga dapat bervariasi tergantung merk dan model sepatu. Silakan cek katalog atau hubungi kami via WhatsApp untuk informasi harga terkini.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Apakah perlu deposit atau jaminan?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Ya, kami meminta deposit atau jaminan berupa KTP/kartu pelajar yang akan dikembalikan saat sepatu dikembalikan dalam kondisi baik. Ini untuk menjaga keamanan barang sewaan kami.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Bagaimana cara menyewa sepatu?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Caranya mudah! Lihat katalog sepatu yang tersedia, pilih yang sesuai, lalu hubungi kami via WhatsApp di 082332651558. Konfirmasi ketersediaan, datang ke lokasi kami di Jambidan, dan sepatu siap dipakai!</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Apakah bisa sewa untuk beberapa hari?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Tentu bisa! Anda bisa menyewa untuk durasi berapa hari pun sesuai kebutuhan. Harga dihitung per hari. Semakin lama sewa, kami bisa diskusikan harga spesial untuk Anda.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Apa yang terjadi jika sepatu rusak atau hilang?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Jika sepatu rusak atau hilang saat masa sewa, penyewa bertanggung jawab atas penggantian atau pembayaran ganti rugi sesuai nilai sepatu. Kami sarankan untuk menjaga sepatu sewaan dengan baik seperti milik sendiri.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Apakah bisa diantar atau harus ambil sendiri?
+          <span class="faq-chevron">▼</span>
+        </div>
+        <div class="faq-answer">Saat ini sepatu perlu diambil langsung di lokasi kami di Jambidan, Banguntapan, Bantul. Hubungi kami via WhatsApp untuk konfirmasi jadwal pengambilan agar sepatu sudah disiapkan.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-logo">sewain<span>.aja</span></div>
+        <div class="footer-brand-desc">Platform penyewaan sepatu bola dan futsal terpercaya di Bantul, Yogyakarta. Tersedia berbagai pilihan sepatu berkualitas dengan harga terjangkau.</div>
+        <div class="footer-social">
+          <a href="https://wa.me/6282332651558" target="_blank" title="WhatsApp">💬</a>
+          <a href="#" title="Instagram">📸</a>
+          <a href="#" title="Facebook">📘</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Menu</h4>
+        <ul>
+          <li><a href="#features">Keunggulan</a></li>
+          <li><a href="#cara-sewa">Cara Sewa</a></li>
+          <li><a href="#catalog">Katalog Sepatu</a></li>
+          <li><a href="#lokasi">Lokasi</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Kontak</h4>
+        <ul>
+          <li><a href="https://wa.me/6282332651558">WA: 082332651558</a></li>
+          <li><a href="#">Jambidan Lor, Jambidan</a></li>
+          <li><a href="#">Banguntapan, Bantul</a></li>
+          <li><a href="#">DIY, Indonesia</a></li>
+          <li><a href="#" onclick="showDashboard()">Dashboard Owner ↗</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 sewain.aja. Hak cipta dilindungi.</div>
+      <div class="footer-copy">Dibuat dengan ❤️ untuk kemudahan penyewaan sepatu</div>
+    </div>
+  </div>
+</footer>
+
+</div><!-- end landing-page -->
+
+<!-- ============================================================
+     ========== LOGIN PAGE (Dashboard Auth Gate) ==========
+============================================================ -->
+<div id="login-page" style="display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 20%, rgba(0,200,83,0.1) 0%, transparent 70%)"></div>
+  <div style="position:relative;z-index:1;width:100%;max-width:380px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;margin-bottom:8px">sewain<span style="color:var(--green)">.aja</span></div>
+      <div style="font-size:13px;color:var(--gray)">Login untuk masuk ke Dashboard</div>
+    </div>
+    <div class="dash-card" style="padding:28px 24px">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" id="login-email" placeholder="owner@sewainaja.com" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="login-error" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px;padding:10px 12px;background:rgba(255,61,61,0.1);border:1px solid rgba(255,61,61,0.25);border-radius:8px"></div>
+      <button class="btn btn-green w-full" id="login-btn" onclick="doLogin()">Masuk</button>
+      <button class="btn btn-outline w-full mt-2" onclick="showLanding()">← Kembali ke Website</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ========== DASHBOARD PAGE ==========
+============================================================ -->
+<div id="dashboard-page" style="display:none">
+  <div class="dash-overlay" id="dash-overlay" onclick="closeDashSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="dash-sidebar" id="dash-sidebar">
+    <div class="dash-sidebar-logo">sewain<span>.aja</span></div>
+    <nav class="dash-nav">
+      <button class="dash-nav-item active" onclick="switchPanel('overview',this)">
+        <span class="dash-nav-icon">📊</span> Dashboard
+      </button>
+      <button class="dash-nav-item" onclick="switchPanel('inventory',this)">
+        <span class="dash-nav-icon">👟</span> Inventaris
+      </button>
+      <button class="dash-nav-item" onclick="switchPanel('rentals',this)">
+        <span class="dash-nav-icon">📋</span> Penyewaan
+      </button>
+      <button class="dash-nav-item" onclick="switchPanel('calendar',this)">
+        <span class="dash-nav-icon">📅</span> Kalender
+      </button>
+      <button class="dash-nav-item" onclick="switchPanel('categories',this)">
+        <span class="dash-nav-icon">🏷️</span> Kategori
+      </button>
+      <button class="dash-nav-item" onclick="switchPanel('settings',this)">
+        <span class="dash-nav-icon">⚙️</span> Pengaturan
+      </button>
+    </nav>
+    <div class="dash-sidebar-footer">
+      <div style="padding:8px 14px 12px;font-size:11px;color:var(--gray)">
+        Login sebagai<br>
+        <span style="color:var(--white);font-weight:600;font-size:12px" id="logged-in-email">-</span>
+      </div>
+      <button class="dash-to-landing" onclick="doLogout()">
+        🔒 Logout
+      </button>
+      <button class="dash-to-landing" onclick="showLanding()">
+        ← Kembali ke Website
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="dash-hamburger" id="dash-hamburger" onclick="toggleDashSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="dash-page-title" id="dash-page-title">Dashboard</div>
+      </div>
+      <div class="dash-topbar-right">
+        <span id="sync-status" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--gray);padding:5px 12px;border-radius:20px;background:var(--card);border:1px solid var(--border)">
+          <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray);transition:background .3s"></span>
+          <span id="sync-text">Menghubungkan...</span>
+        </span>
+        <span style="font-size:13px;color:var(--gray)" id="dash-date"></span>
+        <span style="font-size:20px">👋</span>
+      </div>
+    </div>
+
+    <div class="dash-content">
+
+      <!-- ====== OVERVIEW PANEL ====== -->
+      <div class="dash-panel active" id="panel-overview">
+        <div style="margin-bottom:20px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px">Halo, Owner! 👋</div>
+          <div style="font-size:13px;color:var(--gray)">Berikut ringkasan sewa hari ini</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-icon">👟</div>
+            <div class="stat-num" id="stat-total">0</div>
+            <div class="stat-label">Total Sepatu</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-icon">✅</div>
+            <div class="stat-num" id="stat-avail">0</div>
+            <div class="stat-label">Tersedia</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-num" id="stat-rented">0</div>
+            <div class="stat-label">Sedang Disewa</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-icon">📅</div>
+            <div class="stat-num" id="stat-return">0</div>
+            <div class="stat-label">Kembali Hari Ini</div>
+          </div>
+        </div>
+
+        <!-- Active Rentals -->
+        <div class="dash-card" style="margin-bottom:20px">
+          <div class="dash-card-header">
+            <div class="dash-card-title">🔄 Sepatu Sedang Disewa</div>
+            <button class="btn btn-sm btn-outline" onclick="switchPanel('rentals',document.querySelector('[onclick*=\"rentals\"]'))">Lihat Semua</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="dash-table" id="overview-rented-table">
+              <thead>
+                <tr>
+                  <th>Sepatu</th>
+                  <th>Penyewa</th>
+                  <th>Kembali</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="overview-rented-body">
+                <tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-text">Tidak ada penyewaan aktif</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Return Today -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="dash-card-title">📅 Kembali Hari Ini</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="dash-table">
+              <thead>
+                <tr><th>Sepatu</th><th>Penyewa</th><th>WA Penyewa</th><th>Status</th></tr>
+              </thead>
+              <tbody id="overview-return-body">
+                <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">Tidak ada pengembalian hari ini</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== INVENTORY PANEL ====== -->
+      <div class="dash-panel" id="panel-inventory">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px">Inventaris Sepatu</div>
+            <div style="font-size:13px;color:var(--gray)">Kelola koleksi sepatu sewaan</div>
+          </div>
+          <button class="btn btn-green" onclick="openShoeModal()">+ Tambah Sepatu</button>
+        </div>
+        <div class="search-filter-bar">
+          <input type="text" class="search-input" placeholder="🔍 Cari nama sepatu..." id="inv-search" oninput="renderInventory()">
+          <select class="filter-select" id="inv-cat" onchange="renderInventory()">
+            <option value="">Semua Kategori</option>
+          </select>
+          <select class="filter-select" id="inv-size" onchange="renderInventory()">
+            <option value="">Semua Ukuran</option>
+          </select>
+          <select class="filter-select" id="inv-status" onchange="renderInventory()">
+            <option value="">Semua Status</option>
+            <option value="tersedia">Tersedia</option>
+            <option value="tersewa">Tersewa</option>
+          </select>
+        </div>
+        <div class="inv-grid" id="inventory-grid"></div>
+      </div>
+
+      <!-- ====== RENTALS PANEL ====== -->
+      <div class="dash-panel" id="panel-rentals">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px">Penyewaan</div>
+            <div style="font-size:13px;color:var(--gray)">Kelola transaksi penyewaan</div>
+          </div>
+          <button class="btn btn-green" onclick="openRentalModal()">+ Buat Transaksi</button>
+        </div>
+        <div class="search-filter-bar">
+          <input type="text" class="search-input" placeholder="🔍 Cari nama penyewa..." id="rent-search" oninput="renderRentals()">
+          <select class="filter-select" id="rent-status" onchange="renderRentals()">
+            <option value="">Semua Status</option>
+            <option value="aktif">Aktif</option>
+            <option value="selesai">Selesai</option>
+          </select>
+        </div>
+        <div class="dash-card">
+          <div style="overflow-x:auto">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Sepatu</th>
+                  <th>Penyewa</th>
+                  <th>WhatsApp</th>
+                  <th>Tanggal Sewa</th>
+                  <th>Tanggal Kembali</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="rentals-body">
+                <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada transaksi penyewaan</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== CALENDAR PANEL ====== -->
+      <div class="dash-panel" id="panel-calendar">
+        <div style="margin-bottom:20px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px">Kalender Penyewaan</div>
+          <div style="font-size:13px;color:var(--gray)">Pantau jadwal penyewaan dan pengembalian</div>
+        </div>
+        <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+            <div style="width:12px;height:12px;border-radius:50%;background:var(--green)"></div> Tanggal Sewa
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+            <div style="width:12px;height:12px;border-radius:50%;background:var(--yellow)"></div> Tanggal Kembali
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-body">
+            <div class="cal-header">
+              <div class="cal-month-label" id="cal-month-label">Juni 2025</div>
+              <div class="cal-nav">
+                <button class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
+                <button class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
+              </div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== CATEGORIES PANEL ====== -->
+      <div class="dash-panel" id="panel-categories">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px">Kategori Sepatu</div>
+            <div style="font-size:13px;color:var(--gray)">Kelola kategori untuk organisasi inventaris</div>
+          </div>
+          <button class="btn btn-green" onclick="openCatModal()">+ Tambah Kategori</button>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-body">
+            <div class="cat-list" id="cat-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== SETTINGS PANEL ====== -->
+      <div class="dash-panel" id="panel-settings">
+        <div style="margin-bottom:20px">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px">Pengaturan</div>
+          <div style="font-size:13px;color:var(--gray)">Kelola data dan informasi usaha</div>
+        </div>
+        <div class="setting-section">
+          <h3>Data &amp; Backup</h3>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-title">Export Data (JSON)</div>
+              <div class="setting-row-desc">Unduh semua data ke file JSON sebagai backup</div>
+            </div>
+            <button class="btn btn-green btn-sm" onclick="exportData()">⬇ Export</button>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-title">Import Data (JSON)</div>
+              <div class="setting-row-desc">Pulihkan data dari file JSON</div>
+            </div>
+            <label class="btn btn-outline btn-sm" style="cursor:pointer">
+              ⬆ Import
+              <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+            </label>
+          </div>
+        </div>
+        <div class="setting-section">
+          <h3>Informasi Usaha</h3>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-title">Nama Usaha</div>
+              <div class="setting-row-desc">sewain.aja</div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-title">WhatsApp</div>
+              <div class="setting-row-desc">082332651558</div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-title">Alamat</div>
+              <div class="setting-row-desc">Jambidan Lor, Jambidan, Banguntapan, Bantul</div>
+            </div>
+          </div>
+        </div>
+        <div class="setting-section">
+          <h3>Lainnya</h3>
+          <div class="setting-row">
+            <div class="setting-row-info">
+              <div class="setting-row-title" style="color:var(--red)">Reset Semua Data</div>
+              <div class="setting-row-desc">Hapus semua data dari browser (tidak bisa dibatalkan)</div>
+            </div>
+            <button class="btn btn-red btn-sm" onclick="resetAllData()">🗑 Reset</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end dash-content -->
+  </main>
+</div><!-- end dashboard-page -->
+
+<!-- ============================================================
+     MODALS
+============================================================ -->
+
+<!-- Add/Edit Shoe Modal -->
+<div class="modal-overlay" id="shoe-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="shoe-modal-title">Tambah Sepatu</div>
+      <button class="modal-close" onclick="closeModal('shoe-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="shoe-id">
+      <!-- Step indicator -->
+      <div style="display:flex;gap:8px;margin-bottom:24px" id="shoe-steps">
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--green)" id="sstep-1"></div>
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--border)" id="sstep-2"></div>
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--border)" id="sstep-3"></div>
+      </div>
+      <div id="shoe-step-label" style="font-size:12px;color:var(--gray);margin-bottom:20px;font-weight:600;letter-spacing:.5px">LANGKAH 1 DARI 3 – INFORMASI DASAR</div>
+
+      <!-- Step 1 -->
+      <div id="shoe-form-step1">
+        <div class="form-group">
+          <label class="form-label">Nama Sepatu *</label>
+          <input type="text" class="form-control" id="shoe-name" placeholder="Contoh: Nike Mercurial Vapor 14">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Merk *</label>
+          <input type="text" class="form-control" id="shoe-brand" placeholder="Contoh: Nike">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kondisi</label>
+          <select class="form-control" id="shoe-condition">
+            <option value="Sangat Baik">Sangat Baik</option>
+            <option value="Baik">Baik</option>
+            <option value="Cukup">Cukup</option>
+          </select>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div id="shoe-form-step2" class="hidden">
+        <div class="form-group">
+          <label class="form-label">Kategori *</label>
+          <select class="form-control" id="shoe-category">
+            <option value="">Pilih Kategori</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Size (Ukuran) *</label>
+          <select class="form-control" id="shoe-size">
+            <option value="">Pilih Size</option>
+            <option>36</option><option>37</option><option>38</option><option>39</option>
+            <option>40</option><option>41</option><option>42</option><option>43</option>
+            <option>44</option><option>45</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Harga Sewa / Hari (Rp) *</label>
+          <input type="number" class="form-control" id="shoe-price" placeholder="Contoh: 20000">
+        </div>
+      </div>
+      <!-- Step 3 -->
+      <div id="shoe-form-step3" class="hidden">
+        <div class="form-group">
+          <label class="form-label">Foto Sepatu (Opsional)</label>
+          <div class="photo-upload-area" id="photo-upload-area">
+            <input type="file" accept="image/*" multiple onchange="handlePhotoUpload(event)">
+            <div style="font-size:32px;margin-bottom:8px">📸</div>
+            <div style="font-size:14px;font-weight:600;margin-bottom:4px">Upload Foto Sepatu</div>
+            <div style="font-size:12px;color:var(--gray)">JPG, PNG — klik atau drag & drop</div>
+          </div>
+          <div class="photo-preview" id="photo-preview"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="shoe-prev-btn" onclick="shoeStepPrev()" style="display:none">← Sebelumnya</button>
+      <button class="btn btn-green" id="shoe-next-btn" onclick="shoeStepNext()">Selanjutnya →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Rental Modal -->
+<div class="modal-overlay" id="rental-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="rental-modal-title">Buat Transaksi Sewa</div>
+      <button class="modal-close" onclick="closeModal('rental-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rental-id">
+      <!-- Step indicator -->
+      <div style="display:flex;gap:8px;margin-bottom:24px">
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--green)" id="rstep-1"></div>
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--border)" id="rstep-2"></div>
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--border)" id="rstep-3"></div>
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--border)" id="rstep-4"></div>
+      </div>
+      <div id="rental-step-label" style="font-size:12px;color:var(--gray);margin-bottom:20px;font-weight:600;letter-spacing:.5px">LANGKAH 1 DARI 4 – PILIH SEPATU</div>
+
+      <!-- Step 1: Pilih Sepatu -->
+      <div id="rental-form-step1">
+        <input type="text" class="form-control" placeholder="🔍 Cari sepatu..." id="rental-shoe-search" oninput="renderRentalShoeList()" style="margin-bottom:12px">
+        <div id="rental-shoe-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto"></div>
+      </div>
+      <!-- Step 2: Penyewa -->
+      <div id="rental-form-step2" class="hidden">
+        <div class="form-group">
+          <label class="form-label">Nama Penyewa *</label>
+          <input type="text" class="form-control" id="rental-renter" placeholder="Contoh: Budi">
+        </div>
+        <div class="form-group">
+          <label class="form-label">No. WhatsApp Penyewa</label>
+          <input type="tel" class="form-control" id="rental-wa" placeholder="Contoh: 08xxxxxxxxxx">
+        </div>
+      </div>
+      <!-- Step 3: Tanggal -->
+      <div id="rental-form-step3" class="hidden">
+        <div class="form-group">
+          <label class="form-label">Tanggal Sewa *</label>
+          <input type="date" class="form-control" id="rental-start">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tanggal Kembali *</label>
+          <input type="date" class="form-control" id="rental-end" onchange="calcRentalTotal()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lama Sewa</label>
+          <div class="form-control" style="background:var(--black);pointer-events:none" id="rental-duration">-</div>
+        </div>
+      </div>
+      <!-- Step 4: Konfirmasi -->
+      <div id="rental-form-step4" class="hidden">
+        <div class="dash-card" style="margin-bottom:16px">
+          <div class="dash-card-body">
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
+              <div id="rental-confirm-shoe-img" style="width:60px;height:60px;border-radius:10px;background:var(--dark);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;flex-shrink:0"></div>
+              <div>
+                <div id="rental-confirm-shoe-name" style="font-weight:700;font-size:15px"></div>
+                <div id="rental-confirm-shoe-meta" style="font-size:12px;color:var(--gray)"></div>
+              </div>
+            </div>
+            <div class="txn-detail-grid">
+              <div class="txn-detail-item">
+                <div class="txn-detail-label">Penyewa</div>
+                <div class="txn-detail-val" id="rc-renter"></div>
+              </div>
+              <div class="txn-detail-item">
+                <div class="txn-detail-label">WhatsApp</div>
+                <div class="txn-detail-val" id="rc-wa"></div>
+              </div>
+              <div class="txn-detail-item">
+                <div class="txn-detail-label">Tanggal Sewa</div>
+                <div class="txn-detail-val" id="rc-start"></div>
+              </div>
+              <div class="txn-detail-item">
+                <div class="txn-detail-label">Tanggal Kembali</div>
+                <div class="txn-detail-val" id="rc-end"></div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              <div style="font-weight:600">Total Bayar</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--green)" id="rc-total"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="rental-prev-btn" onclick="rentalStepPrev()" style="display:none">← Sebelumnya</button>
+      <button class="btn btn-green" id="rental-next-btn" onclick="rentalStepNext()">Selanjutnya →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title" id="cat-modal-title">Tambah Kategori</div>
+      <button class="modal-close" onclick="closeModal('cat-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cat-id">
+      <div class="form-group">
+        <label class="form-label">Nama Kategori *</label>
+        <input type="text" class="form-control" id="cat-name" placeholder="Contoh: Futsal, Bola, dll">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('cat-modal')">Batal</button>
+      <button class="btn btn-green" onclick="saveCategory()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shoe Detail Modal -->
+<div class="modal-overlay" id="shoe-detail-modal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">Detail Sepatu</div>
+      <button class="modal-close" onclick="closeModal('shoe-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="shoe-detail-body"></div>
+    <div class="modal-footer" id="shoe-detail-footer"></div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-title" id="confirm-title">Konfirmasi</div>
+      <button class="modal-close" onclick="closeModal('confirm-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-msg" style="font-size:14px;color:var(--gray-light);line-height:1.6"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirm-modal')">Batal</button>
+      <button class="btn btn-red" id="confirm-ok-btn">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+/* ============================================================
+   FIREBASE CONFIG & INIT
+============================================================ */
+const firebaseConfig={
+  apiKey:"AIzaSyAJIFbRxqtRJkBeIUocGC3JHrTpbsQnCOo",
+  authDomain:"sewain-aja21.firebaseapp.com",
+  projectId:"sewain-aja21",
+  storageBucket:"sewain-aja21.firebasestorage.app",
+  messagingSenderId:"667830693281",
+  appId:"1:667830693281:web:fd504e7b16ad72212aafe0"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const auth=firebase.auth();
+// Allow the app to keep working offline (Firestore caches data locally automatically)
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{/* multiple tabs or unsupported browser — safe to ignore */});
+
+/* ============================================================
+   AUTHENTICATION
+   Dashboard is gated behind Firebase Auth (email/password).
+   The public landing page/catalog remains fully open — only the
+   dashboard routes require a logged-in user.
+============================================================ */
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const errEl=document.getElementById('login-error');
+  const btn=document.getElementById('login-btn');
+  errEl.style.display='none';
+
+  if(!email||!password){
+    errEl.textContent='Email dan password wajib diisi';
+    errEl.style.display='block';
+    return;
+  }
+
+  btn.disabled=true;
+  btn.textContent='Memproses...';
+  try{
+    await auth.signInWithEmailAndPassword(email,password);
+    // onAuthStateChanged listener below will handle showing the dashboard
+  }catch(err){
+    let msg='Email atau password salah';
+    if(err.code==='auth/invalid-email') msg='Format email tidak valid';
+    if(err.code==='auth/too-many-requests') msg='Terlalu banyak percobaan, coba lagi nanti';
+    if(err.code==='auth/network-request-failed') msg='Koneksi internet bermasalah';
+    errEl.textContent=msg;
+    errEl.style.display='block';
+  }finally{
+    btn.disabled=false;
+    btn.textContent='Masuk';
+  }
+}
+
+function doLogout(){
+  confirm2('Logout','Yakin ingin keluar dari Dashboard?',async()=>{
+    await auth.signOut();
+    showLanding();
+    toast('Berhasil logout');
+  });
+}
+
+// React automatically whenever login state changes (login, logout, or
+// session restored from a previous visit).
+auth.onAuthStateChanged(user=>{
+  const dashVisible=document.getElementById('dashboard-page').style.display==='flex';
+  const loginVisible=document.getElementById('login-page').style.display==='flex';
+  if(user){
+    // If the login page was open waiting for credentials, move into the dashboard now.
+    if(loginVisible) showDashboard();
+    const emailEl=document.getElementById('logged-in-email');
+    if(emailEl) emailEl.textContent=user.email;
+  } else {
+    // If dashboard was open and the session ended/expired, bounce to login.
+    if(dashVisible) showLoginPage();
+  }
+});
+
+/* ============================================================
+   COLLECTION NAMES (Firestore equivalent of the old LocalStorage keys)
+============================================================ */
+const LS_SHOES='sa_shoes';
+const LS_RENTALS='sa_rentals';
+const LS_CATS='sa_categories';
+const COLLECTIONS={
+  [LS_SHOES]:'shoes',
+  [LS_RENTALS]:'rentals',
+  [LS_CATS]:'categories',
+};
+
+/* ============================================================
+   IN-MEMORY CACHE
+   Firestore reads are async, but the rest of the app calls
+   getData()/setData() synchronously everywhere. To avoid rewriting
+   every function, we keep a local cache that mirrors Firestore in
+   real time via onSnapshot listeners. getData() reads the cache
+   instantly; setData() writes to Firestore (which then updates the
+   cache automatically once the snapshot listener fires).
+============================================================ */
+const cache={
+  [LS_SHOES]:[],
+  [LS_RENTALS]:[],
+  [LS_CATS]:[],
+};
+let syncedCollections=new Set();
+
+function getData(key){
+  return cache[key]||[];
+}
+
+// setData replaces the entire collection in Firestore to match the
+// old "overwrite whole array" LocalStorage behavior (used by import/reset/etc).
+async function setData(key,val){
+  cache[key]=val; // optimistic local update for instant UI feedback
+  renderAllPanels();
+  const colName=COLLECTIONS[key];
+  if(!colName) return;
+  try{
+    const colRef=db.collection(colName);
+    const existing=await colRef.get();
+    const batch=db.batch();
+    // remove docs that are no longer present
+    existing.forEach(doc=>{
+      if(!val.find(item=>item.id===doc.id)) batch.delete(doc.ref);
+    });
+    // upsert all current docs
+    val.forEach(item=>{
+      batch.set(colRef.doc(item.id),item);
+    });
+    await batch.commit();
+  }catch(err){
+    console.error('Firestore setData error:',err);
+    toast('Gagal menyimpan ke server, data disimpan sementara di perangkat ini','warning');
+  }
+}
+
+// Lightweight helper used by single-item saves (faster than full setData rewrite)
+async function upsertDoc(key,item){
+  const colName=COLLECTIONS[key];
+  // optimistic local cache update
+  const idx=cache[key].findIndex(x=>x.id===item.id);
+  if(idx>-1) cache[key][idx]=item; else cache[key].push(item);
+  renderAllPanels();
+  try{
+    await db.collection(colName).doc(item.id).set(item);
+  }catch(err){
+    console.error('Firestore upsert error:',err);
+    toast('Gagal menyimpan ke server','error');
+  }
+}
+async function deleteDoc(key,id){
+  const colName=COLLECTIONS[key];
+  cache[key]=cache[key].filter(x=>x.id!==id);
+  renderAllPanels();
+  try{
+    await db.collection(colName).doc(id).delete();
+  }catch(err){
+    console.error('Firestore delete error:',err);
+    toast('Gagal menghapus dari server','error');
+  }
+}
+
+function genId(){
+  return Date.now().toString(36)+Math.random().toString(36).slice(2,6)
+}
+
+/* ============================================================
+   REAL-TIME LISTENERS
+   Subscribes to each Firestore collection. Whenever data changes
+   (from this device OR any other device), the cache updates and
+   the UI re-renders automatically.
+============================================================ */
+function setSyncStatus(connected){
+  const dot=document.getElementById('sync-dot');
+  const text=document.getElementById('sync-text');
+  if(!dot||!text) return;
+  if(connected){
+    dot.style.background='var(--green)';
+    text.textContent='Tersinkron';
+  } else {
+    dot.style.background='var(--orange)';
+    text.textContent='Menghubungkan...';
+  }
+}
+
+function startFirestoreSync(){
+  Object.entries(COLLECTIONS).forEach(([lsKey,colName])=>{
+    db.collection(colName).onSnapshot(
+      snapshot=>{
+        cache[lsKey]=snapshot.docs.map(doc=>doc.data());
+        syncedCollections.add(lsKey);
+        if(syncedCollections.size===Object.keys(COLLECTIONS).length){
+          setSyncStatus(true);
+        }
+        renderAllPanels();
+      },
+      err=>{
+        console.error('Firestore sync error on',colName,err);
+        setSyncStatus(false);
+        toast('Koneksi ke server bermasalah, memakai data lokal','warning');
+      }
+    );
+  });
+}
+
+// Re-render whichever panel/section is currently visible, safely
+// (functions may not exist yet on first load before DOMContentLoaded)
+function renderAllPanels(){
+  try{ if(typeof renderOverview==='function') renderOverview(); }catch(e){}
+  try{ if(typeof renderInventory==='function') renderInventory(); }catch(e){}
+  try{ if(typeof renderRentals==='function') renderRentals(); }catch(e){}
+  try{ if(typeof renderCategories==='function') renderCategories(); }catch(e){}
+  try{ if(typeof renderCalendar==='function') renderCalendar(); }catch(e){}
+  try{ if(typeof populateInvFilters==='function') populateInvFilters(); }catch(e){}
+  try{ if(typeof renderPublicCatalog==='function') renderPublicCatalog(); }catch(e){}
+}
+
+startFirestoreSync();
+
+/* ============================================================
+   INITIAL SEED DATA
+   Only runs once: if Firestore collections are empty on first
+   connect, populate them with starter categories/shoes so the
+   dashboard isn't blank for a brand-new project.
+============================================================ */
+async function seedDefaults(){
+  try{
+    const catSnap=await db.collection('categories').get();
+    if(catSnap.empty){
+      const defaultCats=[{id:'cat1',name:'Bola'},{id:'cat2',name:'Futsal'}];
+      const batch=db.batch();
+      defaultCats.forEach(c=>batch.set(db.collection('categories').doc(c.id),c));
+      await batch.commit();
+    }
+    const shoeSnap=await db.collection('shoes').get();
+    if(shoeSnap.empty){
+      const defaultShoes=[
+        {id:'s1',name:'Nike Mercurial Vapor 14',brand:'Nike',category:'Futsal',size:'42',price:20000,condition:'Sangat Baik',status:'tersedia',photos:[]},
+        {id:'s2',name:'Adidas Predator Accuracy',brand:'Adidas',category:'Bola',size:'40',price:20000,condition:'Baik',status:'tersedia',photos:[]},
+        {id:'s3',name:'Mizuno Morelia II',brand:'Mizuno',category:'Bola',size:'41',price:18000,condition:'Sangat Baik',status:'tersedia',photos:[]},
+        {id:'s4',name:'Nike Tiempo Legend 9',brand:'Nike',category:'Bola',size:'43',price:20000,condition:'Baik',status:'tersedia',photos:[]},
+      ];
+      const batch=db.batch();
+      defaultShoes.forEach(s=>batch.set(db.collection('shoes').doc(s.id),s));
+      await batch.commit();
+    }
+  }catch(err){
+    console.error('Seed error:',err);
+  }
+}
+seedDefaults();
+
+/* ============================================================
+   TOAST SYSTEM
+============================================================ */
+function toast(msg,type='success'){
+  const el=document.createElement('div');
+  const icon=type==='success'?'✅':type==='error'?'❌':'⚠️';
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.style.opacity='0',3000);
+  setTimeout(()=>el.remove(),3300);
+}
+
+/* ============================================================
+   CONFIRM DIALOG
+============================================================ */
+function confirm2(title,msg,cb){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-ok-btn').onclick=()=>{closeModal('confirm-modal');cb()};
+  openModal('confirm-modal');
+}
+
+/* ============================================================
+   MODAL HELPERS
+============================================================ */
+function openModal(id){document.getElementById(id).classList.add('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function showDashboard(){
+  // Gate: only show dashboard if user is logged in. Otherwise show login page.
+  const user=auth.currentUser;
+  if(user){
+    document.getElementById('login-page').style.display='none';
+    document.getElementById('landing-page').style.display='none';
+    document.getElementById('dashboard-page').style.display='flex';
+    document.getElementById('dashboard-page').style.flexDirection='row';
+    const emailEl=document.getElementById('logged-in-email');
+    if(emailEl) emailEl.textContent=user.email;
+    initDashboard();
+  } else {
+    showLoginPage();
+  }
+}
+function showLoginPage(){
+  document.getElementById('landing-page').style.display='none';
+  document.getElementById('dashboard-page').style.display='none';
+  document.getElementById('login-page').style.display='flex';
+  document.getElementById('login-error').style.display='none';
+  document.getElementById('login-password').value='';
+}
+function showLanding(){
+  document.getElementById('dashboard-page').style.display='none';
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('landing-page').style.display='block';
+  window.scrollTo(0,0);
+}
+function toggleMobileMenu(){
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+function closeMobileMenu(){
+  document.getElementById('mobile-menu').classList.remove('open');
+}
+function toggleDashSidebar(){
+  document.getElementById('dash-sidebar').classList.toggle('open');
+  document.getElementById('dash-overlay').classList.toggle('open');
+}
+function closeDashSidebar(){
+  document.getElementById('dash-sidebar').classList.remove('open');
+  document.getElementById('dash-overlay').classList.remove('open');
+}
+
+/* Switch Dashboard Panels */
+function switchPanel(name,btn){
+  document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.dash-nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  const titles={overview:'Dashboard',inventory:'Inventaris',rentals:'Penyewaan',calendar:'Kalender',categories:'Kategori',settings:'Pengaturan'};
+  document.getElementById('dash-page-title').textContent=titles[name]||name;
+  // render panel
+  if(name==='overview') renderOverview();
+  if(name==='inventory') renderInventory();
+  if(name==='rentals') renderRentals();
+  if(name==='calendar') renderCalendar();
+  if(name==='categories') renderCategories();
+  closeDashSidebar();
+}
+
+/* ============================================================
+   DASHBOARD INIT
+============================================================ */
+function initDashboard(){
+  // Date
+  const now=new Date();
+  const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById('dash-date').textContent=now.toLocaleDateString('id-ID',opts);
+  renderOverview();
+  renderInventory();
+  renderRentals();
+  renderCategories();
+  renderCalendar();
+  populateInvFilters();
+}
+
+/* ============================================================
+   FORMAT HELPERS
+============================================================ */
+function fmtRp(n){return'Rp'+Number(n).toLocaleString('id-ID')}
+function fmtDate(str){
+  if(!str) return'-';
+  const d=new Date(str+'T00:00:00');
+  return d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+}
+function todayStr(){
+  const d=new Date();
+  return d.toISOString().slice(0,10);
+}
+function daysDiff(a,b){
+  const da=new Date(a+'T00:00:00'),db=new Date(b+'T00:00:00');
+  return Math.max(1,Math.round((db-da)/(1000*60*60*24)));
+}
+
+/* ============================================================
+   OVERVIEW PANEL
+============================================================ */
+function renderOverview(){
+  const shoes=getData(LS_SHOES);
+  const rentals=getData(LS_RENTALS);
+  const today=todayStr();
+  const rented=shoes.filter(s=>s.status==='tersewa');
+  const avail=shoes.filter(s=>s.status==='tersedia');
+  const returnToday=rentals.filter(r=>r.status==='aktif'&&r.returnDate===today);
+
+  // Stats
+  animateStat('stat-total',shoes.length);
+  animateStat('stat-avail',avail.length);
+  animateStat('stat-rented',rented.length);
+  animateStat('stat-return',returnToday.length);
+
+  // Hero stats (landing)
+  document.getElementById('hero-stat-total').textContent=shoes.length;
+  document.getElementById('hero-stat-avail').textContent=avail.length;
+
+  // Active rentals
+  const activeRentals=rentals.filter(r=>r.status==='aktif');
+  const tbody=document.getElementById('overview-rented-body');
+  if(!activeRentals.length){
+    tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-text">Tidak ada penyewaan aktif</div></div></td></tr>';
+  } else {
+    tbody.innerHTML=activeRentals.map(r=>{
+      const shoe=shoes.find(s=>s.id===r.shoeId)||{};
+      const isLate=r.returnDate<today;
+      return`<tr>
+        <td>
+          <div style="display:flex;gap:10px;align-items:center">
+            ${shoe.photos&&shoe.photos.length?`<img src="${shoe.photos[0]}" class="shoe-thumb">`:`<div class="shoe-thumb" style="font-size:20px;display:flex;align-items:center;justify-content:center">👟</div>`}
+            <div>
+              <div style="font-weight:600;font-size:13px">${shoe.name||'-'}</div>
+              <div style="font-size:11px;color:var(--gray)">Size ${shoe.size||'-'} • ${shoe.category||'-'}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-weight:600">${r.renterName}</td>
+        <td><span class="${isLate?'text-red':'text-yellow'}" style="font-size:13px">${fmtDate(r.returnDate)}</span></td>
+        <td><span class="badge ${isLate?'badge-red':'badge-orange'}">${isLate?'Terlambat':'Aktif'}</span></td>
+        <td>
+          <button class="btn btn-xs btn-green" onclick="markReturn('${r.id}')">Sudah Kembali</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Return today
+  const retbody=document.getElementById('overview-return-body');
+  if(!returnToday.length){
+    retbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">Tidak ada pengembalian hari ini</div></div></td></tr>';
+  } else {
+    retbody.innerHTML=returnToday.map(r=>{
+      const shoe=shoes.find(s=>s.id===r.shoeId)||{};
+      return`<tr>
+        <td style="font-weight:600">${shoe.name||'-'}</td>
+        <td>${r.renterName}</td>
+        <td><a href="https://wa.me/62${r.renterWa.replace(/^0/,'')}" target="_blank" style="color:var(--green)">${r.renterWa||'-'}</a></td>
+        <td><span class="badge badge-yellow">Kembali Hari Ini</span></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function animateStat(id,target){
+  const el=document.getElementById(id);
+  if(!el) return;
+  let curr=0;
+  const step=Math.ceil(target/20);
+  const t=setInterval(()=>{
+    curr=Math.min(curr+step,target);
+    el.textContent=curr;
+    if(curr>=target) clearInterval(t);
+  },30);
+}
+
+/* ============================================================
+   INVENTORY
+============================================================ */
+function renderInventory(){
+  const shoes=getData(LS_SHOES);
+  const search=(document.getElementById('inv-search')||{}).value?.toLowerCase()||'';
+  const cat=(document.getElementById('inv-cat')||{}).value||'';
+  const size=(document.getElementById('inv-size')||{}).value||'';
+  const status=(document.getElementById('inv-status')||{}).value||'';
+
+  let filtered=shoes.filter(s=>{
+    if(search&&!s.name.toLowerCase().includes(search)&&!s.brand.toLowerCase().includes(search)) return false;
+    if(cat&&s.category!==cat) return false;
+    if(size&&s.size!==size) return false;
+    if(status&&s.status!==status) return false;
+    return true;
+  });
+
+  const grid=document.getElementById('inventory-grid');
+  if(!filtered.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👟</div><div class="empty-text">Tidak ada sepatu ditemukan</div><button class="btn btn-green btn-sm" style="margin-top:12px" onclick="openShoeModal()">+ Tambah Sepatu</button></div>';
+    return;
+  }
+  grid.innerHTML=filtered.map(shoe=>`
+    <div class="inv-card">
+      <div class="inv-card-img">
+        ${shoe.photos&&shoe.photos.length
+          ?`<img src="${shoe.photos[0]}" alt="${shoe.name}">`
+          :`<div class="inv-card-img-placeholder">👟</div>`}
+        <div class="inv-card-status">
+          <span class="badge ${shoe.status==='tersedia'?'badge-green':'badge-orange'}">${shoe.status==='tersedia'?'Tersedia':'Tersewa'}</span>
+        </div>
+      </div>
+      <div class="inv-card-body">
+        <div class="inv-card-name">${shoe.name}</div>
+        <div class="inv-card-meta">${shoe.brand} • Size ${shoe.size} • ${shoe.category}</div>
+        <div class="inv-card-price">Rp${Number(shoe.price).toLocaleString('id-ID')}<span>/hari</span></div>
+        <div class="inv-card-actions">
+          <button class="inv-btn-detail" onclick="openShoeDetail('${shoe.id}')">Detail</button>
+          <button class="inv-btn-edit" onclick="openShoeModal('${shoe.id}')">Edit</button>
+          <button class="inv-btn-hapus" onclick="deleteShoe('${shoe.id}')">Hapus</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function populateInvFilters(){
+  const cats=getData(LS_CATS);
+  const catSel=document.getElementById('inv-cat');
+  if(catSel){
+    catSel.innerHTML='<option value="">Semua Kategori</option>'+cats.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  }
+  const shoes=getData(LS_SHOES);
+  const sizes=[...new Set(shoes.map(s=>s.size))].filter(Boolean).sort((a,b)=>+a-+b);
+  const sizeSel=document.getElementById('inv-size');
+  if(sizeSel){
+    sizeSel.innerHTML='<option value="">Semua Ukuran</option>'+sizes.map(s=>`<option value="${s}">${s}</option>`).join('');
+  }
+}
+
+/* ============================================================
+   SHOE MODAL (multi-step)
+============================================================ */
+let shoeStep=1;
+let shoePhotos=[];
+
+function openShoeModal(id){
+  shoeStep=1;
+  shoePhotos=[];
+  document.getElementById('shoe-id').value='';
+  document.getElementById('shoe-name').value='';
+  document.getElementById('shoe-brand').value='';
+  document.getElementById('shoe-condition').value='Sangat Baik';
+  document.getElementById('shoe-category').value='';
+  document.getElementById('shoe-size').value='';
+  document.getElementById('shoe-price').value='';
+  document.getElementById('photo-preview').innerHTML='';
+
+  // Populate categories
+  const cats=getData(LS_CATS);
+  document.getElementById('shoe-category').innerHTML=
+    '<option value="">Pilih Kategori</option>'+
+    cats.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+
+  if(id){
+    const shoe=getData(LS_SHOES).find(s=>s.id===id);
+    if(shoe){
+      document.getElementById('shoe-modal-title').textContent='Edit Sepatu';
+      document.getElementById('shoe-id').value=shoe.id;
+      document.getElementById('shoe-name').value=shoe.name;
+      document.getElementById('shoe-brand').value=shoe.brand;
+      document.getElementById('shoe-condition').value=shoe.condition||'Sangat Baik';
+      document.getElementById('shoe-category').value=shoe.category;
+      document.getElementById('shoe-size').value=shoe.size;
+      document.getElementById('shoe-price').value=shoe.price;
+      shoePhotos=shoe.photos||[];
+      renderPhotoPreview();
+    }
+  } else {
+    document.getElementById('shoe-modal-title').textContent='Tambah Sepatu';
+  }
+  updateShoeStepUI();
+  openModal('shoe-modal');
+}
+
+function updateShoeStepUI(){
+  [1,2,3].forEach(i=>{
+    document.getElementById('shoe-form-step'+i).classList.toggle('hidden',i!==shoeStep);
+    document.getElementById('sstep-'+i).style.background=i<=shoeStep?'var(--green)':'var(--border)';
+  });
+  const labels=['','LANGKAH 1 DARI 3 – INFORMASI DASAR','LANGKAH 2 DARI 3 – DETAIL SEPATU','LANGKAH 3 DARI 3 – FOTO SEPATU'];
+  document.getElementById('shoe-step-label').textContent=labels[shoeStep];
+  document.getElementById('shoe-prev-btn').style.display=shoeStep>1?'':'none';
+  document.getElementById('shoe-next-btn').textContent=shoeStep===3?'Simpan Sepatu':'Selanjutnya →';
+}
+
+function shoeStepNext(){
+  if(shoeStep===1){
+    if(!document.getElementById('shoe-name').value.trim()||!document.getElementById('shoe-brand').value.trim()){
+      toast('Nama dan merk wajib diisi','error'); return;
+    }
+    shoeStep=2; updateShoeStepUI();
+  } else if(shoeStep===2){
+    if(!document.getElementById('shoe-category').value||!document.getElementById('shoe-size').value||!document.getElementById('shoe-price').value){
+      toast('Kategori, size, dan harga wajib diisi','error'); return;
+    }
+    shoeStep=3; updateShoeStepUI();
+  } else if(shoeStep===3){
+    saveShoe();
+  }
+}
+function shoeStepPrev(){
+  if(shoeStep>1){shoeStep--;updateShoeStepUI();}
+}
+
+function saveShoe(){
+  const id=document.getElementById('shoe-id').value;
+  const shoe={
+    id:id||genId(),
+    name:document.getElementById('shoe-name').value.trim(),
+    brand:document.getElementById('shoe-brand').value.trim(),
+    condition:document.getElementById('shoe-condition').value,
+    category:document.getElementById('shoe-category').value,
+    size:document.getElementById('shoe-size').value,
+    price:+document.getElementById('shoe-price').value,
+    status:'tersedia',
+    photos:shoePhotos,
+  };
+  if(id){
+    const existing=getData(LS_SHOES).find(s=>s.id===id);
+    if(existing) shoe.status=existing.status;
+    toast('Sepatu berhasil diperbarui');
+  } else {
+    toast('Sepatu berhasil ditambahkan');
+  }
+  upsertDoc(LS_SHOES,shoe);
+  closeModal('shoe-modal');
+}
+
+function deleteShoe(id){
+  confirm2('Hapus Sepatu','Yakin ingin menghapus sepatu ini? Data tidak bisa dikembalikan.',()=>{
+    deleteDoc(LS_SHOES,id);
+    toast('Sepatu berhasil dihapus');
+  });
+}
+
+/* Photo Upload */
+function handlePhotoUpload(e){
+  const files=Array.from(e.target.files);
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      shoePhotos.push(ev.target.result);
+      renderPhotoPreview();
+    };
+    reader.readAsDataURL(f);
+  });
+}
+function renderPhotoPreview(){
+  const el=document.getElementById('photo-preview');
+  el.innerHTML=shoePhotos.map((p,i)=>`
+    <div class="photo-preview-item">
+      <img src="${p}" alt="foto ${i+1}">
+      <button class="photo-preview-remove" onclick="removePhoto(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function removePhoto(idx){
+  shoePhotos.splice(idx,1);
+  renderPhotoPreview();
+}
+
+/* Shoe Detail */
+function openShoeDetail(id){
+  const shoe=getData(LS_SHOES).find(s=>s.id===id);
+  if(!shoe) return;
+  const body=document.getElementById('shoe-detail-body');
+  const footer=document.getElementById('shoe-detail-footer');
+
+  const rentals=getData(LS_RENTALS).filter(r=>r.shoeId===id);
+  const historyHtml=rentals.length
+    ?rentals.slice(-5).reverse().map(r=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="width:8px;height:8px;border-radius:50%;background:${r.status==='aktif'?'var(--green)':'var(--gray)'};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${r.renterName}</div>
+          <div style="font-size:11px;color:var(--gray)">${fmtDate(r.rentDate)} – ${fmtDate(r.returnDate)}</div>
+        </div>
+        <span class="badge ${r.status==='aktif'?'badge-green':'badge-gray'}">${r.status==='aktif'?'Aktif':'Selesai'}</span>
+      </div>
+    `).join('')
+    :'<div style="font-size:13px;color:var(--gray);padding:12px 0">Belum pernah disewa</div>';
+
+  body.innerHTML=`
+    <div style="height:180px;background:var(--dark);border-radius:var(--radius);margin-bottom:16px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+      ${shoe.photos&&shoe.photos.length
+        ?`<img src="${shoe.photos[0]}" style="width:100%;height:100%;object-fit:cover">`
+        :`<div style="font-size:72px;opacity:.2">👟</div>`}
+    </div>
+    <div style="margin-bottom:4px;font-size:12px;color:var(--gray)">${shoe.category} • Size ${shoe.size}</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px">${shoe.name}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span class="badge ${shoe.status==='tersedia'?'badge-green':'badge-orange'}">${shoe.status==='tersedia'?'Tersedia':'Tersewa'}</span>
+      <span class="badge badge-gray">${shoe.condition}</span>
+    </div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--green);margin-bottom:16px">${fmtRp(shoe.price)}<span style="font-family:Inter;font-size:13px;color:var(--gray);font-weight:400">/hari</span></div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px">Riwayat Penyewaan</div>
+    ${historyHtml}
+  `;
+
+  footer.innerHTML=`
+    <button class="btn btn-outline btn-sm" onclick="closeModal('shoe-detail-modal');openShoeModal('${shoe.id}')">✏️ Edit Sepatu</button>
+    ${shoe.status==='tersedia'
+      ?`<button class="btn btn-green btn-sm" onclick="closeModal('shoe-detail-modal');openRentalModal('${shoe.id}')">📋 Sewakan</button>`
+      :`<button class="btn btn-yellow btn-sm" onclick="markShoeAvailable('${shoe.id}')">✅ Tandai Tersedia</button>`}
+  `;
+  openModal('shoe-detail-modal');
+}
+
+function markShoeAvailable(id){
+  const shoes=getData(LS_SHOES);
+  const s=shoes.find(sh=>sh.id===id);
+  if(s){
+    const updated={...s,status:'tersedia'};
+    upsertDoc(LS_SHOES,updated);
+  }
+  closeModal('shoe-detail-modal');
+  toast('Sepatu ditandai tersedia');
+}
+
+/* ============================================================
+   RENTAL MODAL (multi-step)
+============================================================ */
+let rentalStep=1;
+let selectedShoeId=null;
+
+function openRentalModal(preSelectedShoeId){
+  rentalStep=1;
+  selectedShoeId=preSelectedShoeId||null;
+  document.getElementById('rental-id').value='';
+  document.getElementById('rental-renter').value='';
+  document.getElementById('rental-wa').value='';
+  const today=todayStr();
+  document.getElementById('rental-start').value=today;
+  document.getElementById('rental-end').value=today;
+  document.getElementById('rental-duration').textContent='-';
+  document.getElementById('rental-modal-title').textContent='Buat Transaksi Sewa';
+  renderRentalShoeList();
+  updateRentalStepUI();
+  openModal('rental-modal');
+}
+
+function updateRentalStepUI(){
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('rental-form-step'+i).classList.toggle('hidden',i!==rentalStep);
+    document.getElementById('rstep-'+i).style.background=i<=rentalStep?'var(--green)':'var(--border)';
+  });
+  const labels=['',
+    'LANGKAH 1 DARI 4 – PILIH SEPATU',
+    'LANGKAH 2 DARI 4 – DATA PENYEWA',
+    'LANGKAH 3 DARI 4 – PILIH TANGGAL',
+    'LANGKAH 4 DARI 4 – KONFIRMASI',
+  ];
+  document.getElementById('rental-step-label').textContent=labels[rentalStep];
+  document.getElementById('rental-prev-btn').style.display=rentalStep>1?'':'none';
+  document.getElementById('rental-next-btn').textContent=rentalStep===4?'Simpan Transaksi':'Selanjutnya →';
+}
+
+function renderRentalShoeList(){
+  const shoes=getData(LS_SHOES).filter(s=>s.status==='tersedia');
+  const search=(document.getElementById('rental-shoe-search')||{}).value?.toLowerCase()||'';
+  const filtered=shoes.filter(s=>!search||s.name.toLowerCase().includes(search)||s.brand.toLowerCase().includes(search));
+  const el=document.getElementById('rental-shoe-list');
+  if(!filtered.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">👟</div><div class="empty-text">Tidak ada sepatu tersedia</div></div>';return;
+  }
+  el.innerHTML=filtered.map(s=>`
+    <div onclick="selectRentalShoe('${s.id}',this)" style="
+      display:flex;gap:12px;align-items:center;padding:12px;
+      background:${selectedShoeId===s.id?'rgba(0,200,83,0.08)':'var(--dark)'};
+      border:1px solid ${selectedShoeId===s.id?'var(--green)':'var(--border)'};
+      border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;
+    ">
+      <div style="width:48px;height:48px;border-radius:8px;background:var(--card);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+        ${s.photos&&s.photos.length?`<img src="${s.photos[0]}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:24px">👟</span>`}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+        <div style="font-size:11px;color:var(--gray)">${s.brand} • Size ${s.size} • ${s.category}</div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--green);white-space:nowrap">${fmtRp(s.price)}</div>
+    </div>
+  `).join('');
+}
+
+function selectRentalShoe(id,el){
+  selectedShoeId=id;
+  renderRentalShoeList();
+}
+
+function rentalStepNext(){
+  if(rentalStep===1){
+    if(!selectedShoeId){toast('Pilih sepatu terlebih dahulu','error');return;}
+    rentalStep=2; updateRentalStepUI();
+  } else if(rentalStep===2){
+    if(!document.getElementById('rental-renter').value.trim()){toast('Nama penyewa wajib diisi','error');return;}
+    rentalStep=3; updateRentalStepUI();
+  } else if(rentalStep===3){
+    const start=document.getElementById('rental-start').value;
+    const end=document.getElementById('rental-end').value;
+    if(!start||!end){toast('Tanggal sewa dan kembali wajib diisi','error');return;}
+    if(end<start){toast('Tanggal kembali tidak boleh sebelum tanggal sewa','error');return;}
+    calcRentalTotal();
+    rentalStep=4;
+    fillRentalConfirm();
+    updateRentalStepUI();
+  } else if(rentalStep===4){
+    saveRental();
+  }
+}
+function rentalStepPrev(){
+  if(rentalStep>1){rentalStep--;updateRentalStepUI();}
+}
+
+function calcRentalTotal(){
+  const start=document.getElementById('rental-start').value;
+  const end=document.getElementById('rental-end').value;
+  if(!start||!end) return;
+  const days=daysDiff(start,end);
+  document.getElementById('rental-duration').textContent=days+' hari';
+}
+
+function fillRentalConfirm(){
+  const shoe=getData(LS_SHOES).find(s=>s.id===selectedShoeId);
+  const start=document.getElementById('rental-start').value;
+  const end=document.getElementById('rental-end').value;
+  const days=daysDiff(start,end);
+  const total=shoe.price*days;
+
+  const imgEl=document.getElementById('rental-confirm-shoe-img');
+  imgEl.innerHTML=shoe.photos&&shoe.photos.length
+    ?`<img src="${shoe.photos[0]}" style="width:100%;height:100%;object-fit:cover">`
+    :`<span style="font-size:32px">👟</span>`;
+  document.getElementById('rental-confirm-shoe-name').textContent=shoe.name;
+  document.getElementById('rental-confirm-shoe-meta').textContent=`${shoe.brand} • Size ${shoe.size} • ${shoe.category}`;
+  document.getElementById('rc-renter').textContent=document.getElementById('rental-renter').value;
+  document.getElementById('rc-wa').textContent=document.getElementById('rental-wa').value||'-';
+  document.getElementById('rc-start').textContent=fmtDate(start);
+  document.getElementById('rc-end').textContent=fmtDate(end);
+  document.getElementById('rc-total').textContent=fmtRp(total);
+}
+
+function saveRental(){
+  const shoe=getData(LS_SHOES).find(s=>s.id===selectedShoeId);
+  const start=document.getElementById('rental-start').value;
+  const end=document.getElementById('rental-end').value;
+  const days=daysDiff(start,end);
+  const rental={
+    id:genId(),
+    shoeId:selectedShoeId,
+    renterName:document.getElementById('rental-renter').value.trim(),
+    renterWa:document.getElementById('rental-wa').value.trim(),
+    rentDate:start,
+    returnDate:end,
+    days,
+    total:shoe.price*days,
+    status:'aktif',
+    createdAt:new Date().toISOString(),
+  };
+  upsertDoc(LS_RENTALS,rental);
+
+  // Update shoe status to "tersewa"
+  if(shoe) upsertDoc(LS_SHOES,{...shoe,status:'tersewa'});
+
+  toast('Transaksi berhasil disimpan!');
+  closeModal('rental-modal');
+}
+
+/* ============================================================
+   RENTALS LIST
+============================================================ */
+function renderRentals(){
+  const rentals=getData(LS_RENTALS);
+  const shoes=getData(LS_SHOES);
+  const search=(document.getElementById('rent-search')||{}).value?.toLowerCase()||'';
+  const status=(document.getElementById('rent-status')||{}).value||'';
+  const today=todayStr();
+
+  let filtered=rentals.filter(r=>{
+    if(search&&!r.renterName.toLowerCase().includes(search)) return false;
+    if(status&&r.status!==status) return false;
+    return true;
+  }).sort((a,b)=>b.createdAt>a.createdAt?1:-1);
+
+  const tbody=document.getElementById('rentals-body');
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada transaksi penyewaan</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=filtered.map(r=>{
+    const shoe=shoes.find(s=>s.id===r.shoeId)||{};
+    const isLate=r.status==='aktif'&&r.returnDate<today;
+    const statusBadge=r.status==='selesai'?'badge-gray':isLate?'badge-red':'badge-orange';
+    const statusText=r.status==='selesai'?'Selesai':isLate?'Terlambat':'Aktif';
+    return`<tr>
+      <td>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${shoe.photos&&shoe.photos.length
+            ?`<img src="${shoe.photos[0]}" class="shoe-thumb">`
+            :`<div class="shoe-thumb" style="display:flex;align-items:center;justify-content:center;font-size:18px">👟</div>`}
+          <div>
+            <div style="font-size:13px;font-weight:600">${shoe.name||'(Dihapus)'}</div>
+            <div style="font-size:11px;color:var(--gray)">Size ${shoe.size||'-'}</div>
+          </div>
+        </div>
+      </td>
+      <td style="font-weight:600">${r.renterName}</td>
+      <td>
+        ${r.renterWa
+          ?`<a href="https://wa.me/62${r.renterWa.replace(/^0/,'')}" target="_blank" style="color:var(--green);font-size:13px">${r.renterWa}</a>`
+          :'-'}
+      </td>
+      <td style="font-size:13px">${fmtDate(r.rentDate)}</td>
+      <td style="font-size:13px">${fmtDate(r.returnDate)}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;color:var(--green);font-size:18px">${fmtRp(r.total)}</td>
+      <td><span class="badge ${statusBadge}">${statusText}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          ${r.status==='aktif'
+            ?`<button class="btn btn-xs btn-green" onclick="markReturn('${r.id}')">✅ Kembali</button>`
+            :''}
+          <button class="btn btn-xs btn-red" onclick="deleteRental('${r.id}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function markReturn(id){
+  confirm2('Konfirmasi Pengembalian','Apakah sepatu ini sudah dikembalikan?',()=>{
+    const rental=getData(LS_RENTALS).find(r=>r.id===id);
+    if(rental){
+      const updatedRental={...rental,status:'selesai',returnedAt:new Date().toISOString()};
+      upsertDoc(LS_RENTALS,updatedRental);
+      // Free up shoe
+      const shoe=getData(LS_SHOES).find(s=>s.id===rental.shoeId);
+      if(shoe) upsertDoc(LS_SHOES,{...shoe,status:'tersedia'});
+      toast('Pengembalian berhasil dicatat!');
+    }
+  });
+}
+
+function deleteRental(id){
+  confirm2('Hapus Transaksi','Yakin ingin menghapus transaksi ini?',()=>{
+    const r=getData(LS_RENTALS).find(x=>x.id===id);
+    // If active, free the shoe
+    if(r&&r.status==='aktif'){
+      const shoe=getData(LS_SHOES).find(s=>s.id===r.shoeId);
+      if(shoe) upsertDoc(LS_SHOES,{...shoe,status:'tersedia'});
+    }
+    deleteDoc(LS_RENTALS,id);
+    toast('Transaksi dihapus');
+  });
+}
+
+/* ============================================================
+   CALENDAR
+============================================================ */
+let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth();
+
+const MONTH_NAMES_ID=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const DAY_LABELS=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+
+function changeCalMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+function renderCalendar(){
+  document.getElementById('cal-month-label').textContent=`${MONTH_NAMES_ID[calMonth]} ${calYear}`;
+  const rentals=getData(LS_RENTALS);
+  const today=todayStr();
+
+  // Build sets of dates
+  const rentDates=new Set(), returnDates=new Set();
+  rentals.forEach(r=>{
+    rentDates.add(r.rentDate);
+    returnDates.add(r.returnDate);
+  });
+
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const grid=document.getElementById('cal-grid');
+
+  let html=DAY_LABELS.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
+
+  // Empty cells before month start
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day other-month"></div>`;
+
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=dateStr===today;
+    const hasRent=rentDates.has(dateStr);
+    const hasReturn=returnDates.has(dateStr);
+    html+=`<div class="cal-day${isToday?' today':''}">
+      <div class="cal-day-num">${d}</div>
+      ${hasRent?`<div class="cal-day-dot rental" title="Tanggal Sewa"></div>`:''}
+      ${hasReturn?`<div class="cal-day-dot return" title="Tanggal Kembali"></div>`:''}
+    </div>`;
+  }
+  grid.innerHTML=html;
+}
+
+/* ============================================================
+   CATEGORIES
+============================================================ */
+function renderCategories(){
+  const cats=getData(LS_CATS);
+  const shoes=getData(LS_SHOES);
+  const el=document.getElementById('cat-list');
+  if(!cats.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">Belum ada kategori</div></div>';return;
+  }
+  el.innerHTML=cats.map(c=>{
+    const count=shoes.filter(s=>s.category===c.name).length;
+    return`<div class="cat-item">
+      <div>
+        <div class="cat-item-name">${c.name}</div>
+        <div class="cat-item-count">${count} sepatu</div>
+      </div>
+      <div class="cat-item-actions">
+        <button class="btn btn-xs btn-outline" onclick="openCatModal('${c.id}')">Edit</button>
+        <button class="btn btn-xs btn-red" onclick="deleteCategory('${c.id}')">Hapus</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCatModal(id){
+  document.getElementById('cat-id').value='';
+  document.getElementById('cat-name').value='';
+  document.getElementById('cat-modal-title').textContent='Tambah Kategori';
+  if(id){
+    const cat=getData(LS_CATS).find(c=>c.id===id);
+    if(cat){
+      document.getElementById('cat-modal-title').textContent='Edit Kategori';
+      document.getElementById('cat-id').value=cat.id;
+      document.getElementById('cat-name').value=cat.name;
+    }
+  }
+  openModal('cat-modal');
+}
+
+function saveCategory(){
+  const id=document.getElementById('cat-id').value;
+  const name=document.getElementById('cat-name').value.trim();
+  if(!name){toast('Nama kategori wajib diisi','error');return;}
+  const cat={id:id||genId(),name};
+  if(id) toast('Kategori diperbarui');
+  else toast('Kategori ditambahkan');
+  upsertDoc(LS_CATS,cat);
+  closeModal('cat-modal');
+}
+
+function deleteCategory(id){
+  confirm2('Hapus Kategori','Yakin ingin menghapus kategori ini?',()=>{
+    deleteDoc(LS_CATS,id);
+    toast('Kategori dihapus');
+  });
+}
+
+/* ============================================================
+   SETTINGS - EXPORT / IMPORT
+============================================================ */
+function exportData(){
+  const data={
+    shoes:getData(LS_SHOES),
+    rentals:getData(LS_RENTALS),
+    categories:getData(LS_CATS),
+    exportedAt:new Date().toISOString(),
+    version:'1.0',
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`sewain-aja-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Data berhasil diexport!');
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.shoes||!data.rentals||!data.categories) throw new Error('Format tidak valid');
+      confirm2('Import Data','Ini akan mengganti semua data yang ada. Yakin?',()=>{
+        setData(LS_SHOES,data.shoes||[]);
+        setData(LS_RENTALS,data.rentals||[]);
+        setData(LS_CATS,data.categories||[]);
+        toast('Data berhasil diimport!');
+        initDashboard();
+        renderPublicCatalog();
+      });
+    }catch(err){
+      toast('File tidak valid atau format salah','error');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+async function resetAllData(){
+  confirm2('Reset Semua Data','PERHATIAN: Semua data sepatu, penyewaan, dan kategori akan dihapus permanen dari server!',async()=>{
+    try{
+      toast('Menghapus data...','warning');
+      const colNames=Object.values(COLLECTIONS);
+      for(const colName of colNames){
+        const snap=await db.collection(colName).get();
+        const batch=db.batch();
+        snap.forEach(doc=>batch.delete(doc.ref));
+        await batch.commit();
+      }
+      await seedDefaults();
+      toast('Data berhasil direset');
+    }catch(err){
+      console.error('Reset error:',err);
+      toast('Gagal mereset data, coba lagi','error');
+    }
+  });
+}
+
+/* ============================================================
+   PUBLIC CATALOG (LANDING PAGE)
+============================================================ */
+let publicCatalogFilter='semua';
+
+function filterCatalog(cat,btn){
+  publicCatalogFilter=cat;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPublicCatalog();
+}
+
+function renderPublicCatalog(){
+  const shoes=getData(LS_SHOES);
+  const cats=getData(LS_CATS);
+
+  // Update filter buttons
+  const filterEl=document.getElementById('catalog-filter');
+  const catBtns=cats.map(c=>`<button class="filter-btn${publicCatalogFilter===c.name?' active':''}" data-cat="${c.name}" onclick="filterCatalog('${c.name}',this)">${c.name}</button>`).join('');
+  filterEl.innerHTML=`
+    <button class="filter-btn${publicCatalogFilter==='semua'?' active':''}" data-cat="semua" onclick="filterCatalog('semua',this)">Semua</button>
+    ${catBtns}
+  `;
+
+  const filtered=publicCatalogFilter==='semua'?shoes:shoes.filter(s=>s.category===publicCatalogFilter);
+  const el=document.getElementById('public-catalog');
+
+  if(!filtered.length){
+    el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👟</div><div class="empty-text">Belum ada sepatu tersedia di kategori ini</div></div>';
+    return;
+  }
+
+  el.innerHTML=filtered.map(shoe=>`
+    <div class="shoe-card">
+      <div class="shoe-card-img">
+        ${shoe.photos&&shoe.photos.length
+          ?`<img src="${shoe.photos[0]}" alt="${shoe.name}">`
+          :`<div class="shoe-card-img-placeholder">👟</div>`}
+        <div class="shoe-card-status">
+          <span class="badge ${shoe.status==='tersedia'?'badge-green':'badge-orange'}">${shoe.status==='tersedia'?'Tersedia':'Tersewa'}</span>
+        </div>
+      </div>
+      <div class="shoe-card-body">
+        <div class="shoe-card-name">${shoe.name}</div>
+        <div class="shoe-card-meta">${shoe.brand} • Size ${shoe.size} • ${shoe.category}</div>
+        <div class="shoe-card-price">${fmtRp(shoe.price)} <span>/hari</span></div>
+        ${shoe.status==='tersedia'
+          ?`<a href="https://wa.me/6282332651558?text=Halo%20sewain.aja!%20Saya%20ingin%20menyewa%20${encodeURIComponent(shoe.name)}%20ukuran%20${shoe.size}." target="_blank" class="btn btn-green shoe-card-action">💬 Sewa via WhatsApp</a>`
+          :`<div class="btn btn-dark shoe-card-action" style="pointer-events:none;opacity:.6">Sedang Tersewa</div>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   FAQ TOGGLE
+============================================================ */
+function toggleFaq(el){
+  const item=el.parentElement;
+  const isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+document.addEventListener('DOMContentLoaded',()=>{
+  renderPublicCatalog();
+  // Update hero stats
+  const shoes=getData(LS_SHOES);
+  document.getElementById('hero-stat-total').textContent=shoes.length;
+  document.getElementById('hero-stat-avail').textContent=shoes.filter(s=>s.status==='tersedia').length;
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click',e=>{
+    if(e.target===overlay) overlay.classList.remove('active');
+  });
+});
+</script>
+</body>
+</html>
