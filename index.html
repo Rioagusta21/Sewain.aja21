@@ -1458,8 +1458,6 @@ select.form-control option{background:var(--dark)}
         </div>
       </div>
 
-      </div>
-
       <!-- ====== LOYALTY PANEL ====== -->
       <div class="dash-panel" id="panel-loyalty">
         <div style="margin-bottom:20px">
@@ -2961,19 +2959,45 @@ function openCouponModal(rentalId){
 
 function shareCouponWA(){
   const rental=getData(LS_RENTALS).find(r=>r.id===currentCouponRentalId);
-  if(!rental) return;
+  if(!rental){toast('Data tidak ditemukan','error');return;}
   const shoe=getData(LS_SHOES).find(s=>s.id===rental.shoeId)||{};
   const key=rental.renterWa||rental.renterName;
-  const total=getData(LS_RENTALS).filter(r=>(r.renterWa||r.renterName)===key&&r.status==='selesai').length;
-  const progress=total%LOYALTY_TARGET===0&&total>=LOYALTY_TARGET?LOYALTY_TARGET:total%LOYALTY_TARGET;
-  const msg=`🎫 *KUPON LOYALITAS sewain.aja*\n━━━━━━━━━━━━━━━━━\n👤 Nama: ${rental.renterName}\n👟 Sepatu: ${shoe.name||'-'}\n📅 Sewa: ${fmtDate(rental.rentDate)}\n📅 Kembali: ${fmtDate(rental.returnDate)}\n💰 Total: ${fmtRp(rental.total)}\n━━━━━━━━━━━━━━━━━\n🏆 Progress: ${progress}/${LOYALTY_TARGET} kupon\n${progress>=LOYALTY_TARGET?'🎉 Kamu berhak 1 sewa GRATIS!':LOYALTY_TARGET-progress+' sewa lagi untuk GRATIS!'}\n━━━━━━━━━━━━━━━━━\n📍 sewain.aja | Jambidan, Bantul\n📱 WA: 082332651558`;
-  const wa=rental.renterWa?`https://wa.me/62${rental.renterWa.replace(/^0/,'')}`:`https://wa.me/6282332651558`;
-  window.open(`${wa}?text=${encodeURIComponent(msg)}`,'_blank');
+  const totalSelesai=getData(LS_RENTALS).filter(r=>(r.renterWa||r.renterName)===key&&r.status==='selesai').length;
+  const progress=totalSelesai%LOYALTY_TARGET===0&&totalSelesai>=LOYALTY_TARGET?LOYALTY_TARGET:totalSelesai%LOYALTY_TARGET;
+  const sisa=LOYALTY_TARGET-progress;
+
+  // Build pesan dengan newline eksplisit (bukan \n template literal)
+  const lines=[
+    '🎫 *KUPON LOYALITAS sewain.aja*',
+    '━━━━━━━━━━━━━━━━━',
+    `👤 Nama: ${rental.renterName}`,
+    `👟 Sepatu: ${shoe.name||'-'} (Size ${shoe.size||'-'})`,
+    `📅 Tanggal Sewa: ${fmtDate(rental.rentDate)}`,
+    `📅 Tanggal Kembali: ${fmtDate(rental.returnDate)}`,
+    `💰 Total Bayar: ${fmtRp(rental.total)}`,
+    '━━━━━━━━━━━━━━━━━',
+    `🏆 Kupon ke-${totalSelesai} | Progress: ${progress}/${LOYALTY_TARGET}`,
+    progress>=LOYALTY_TARGET
+      ?'🎉 *SELAMAT! Kamu berhak dapat 1 sewa GRATIS!* Tunjukkan pesan ini ke pemilik sewain.aja.'
+      :`Kumpulkan ${sisa} kupon lagi untuk dapat 1 sewa GRATIS!`,
+    '━━━━━━━━━━━━━━━━━',
+    '📍 sewain.aja | Jambidan, Bantul',
+    '📱 WA: 082332651558',
+  ];
+  const msg=lines.join('\n');
+
+  // Tentukan nomor WA tujuan — ke penyewa kalau ada, ke owner kalau tidak ada WA penyewa
+  const waNum=rental.renterWa&&rental.renterWa.trim()
+    ?'62'+rental.renterWa.trim().replace(/^0+/,'')
+    :'6282332651558';
+
+  window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
 /* ============================================================
    CALENDAR
 ============================================================ */
+let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 
 const MONTH_NAMES_ID=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -2987,35 +3011,54 @@ function changeCalMonth(dir){
 }
 
 function renderCalendar(){
-  document.getElementById('cal-month-label').textContent=`${MONTH_NAMES_ID[calMonth]} ${calYear}`;
+  const labelEl=document.getElementById('cal-month-label');
+  if(labelEl) labelEl.textContent=`${MONTH_NAMES_ID[calMonth]} ${calYear}`;
+
   const rentals=getData(LS_RENTALS);
   const today=todayStr();
 
-  // Build sets of dates
-  const rentDates=new Set(), returnDates=new Set();
+  // Kumpulkan data per tanggal (bisa lebih dari 1 transaksi per tanggal)
+  const rentMap={}, returnMap={};
   rentals.forEach(r=>{
-    rentDates.add(r.rentDate);
-    returnDates.add(r.returnDate);
+    if(r.rentDate){
+      if(!rentMap[r.rentDate]) rentMap[r.rentDate]=[];
+      rentMap[r.rentDate].push(r.renterName);
+    }
+    if(r.returnDate){
+      if(!returnMap[r.returnDate]) returnMap[r.returnDate]=[];
+      returnMap[r.returnDate].push(r.renterName);
+    }
   });
 
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   const grid=document.getElementById('cal-grid');
+  if(!grid) return;
 
   let html=DAY_LABELS.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
 
-  // Empty cells before month start
+  // Sel kosong sebelum awal bulan
   for(let i=0;i<firstDay;i++) html+=`<div class="cal-day other-month"></div>`;
 
   for(let d=1;d<=daysInMonth;d++){
     const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday=dateStr===today;
-    const hasRent=rentDates.has(dateStr);
-    const hasReturn=returnDates.has(dateStr);
-    html+=`<div class="cal-day${isToday?' today':''}">
+    const renters=rentMap[dateStr]||[];
+    const returners=returnMap[dateStr]||[];
+
+    // Tooltip: nama penyewa
+    const tooltip=[
+      ...renters.map(n=>`Sewa: ${n}`),
+      ...returners.map(n=>`Kembali: ${n}`),
+    ].join(' | ');
+
+    html+=`<div class="cal-day${isToday?' today':''}" title="${tooltip}" style="cursor:${renters.length||returners.length?'pointer':'default'}">
       <div class="cal-day-num">${d}</div>
-      ${hasRent?`<div class="cal-day-dot rental" title="Tanggal Sewa"></div>`:''}
-      ${hasReturn?`<div class="cal-day-dot return" title="Tanggal Kembali"></div>`:''}
+      ${renters.length?`<div class="cal-day-dot rental" title="Sewa: ${renters.join(', ')}"></div>`:''}
+      ${returners.length?`<div class="cal-day-dot return" title="Kembali: ${returners.join(', ')}"></div>`:''}
+      ${renters.length||returners.length
+        ?`<div style="font-size:9px;color:var(--gray);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${[...renters,...returners][0]}</div>`
+        :''}
     </div>`;
   }
   grid.innerHTML=html;
