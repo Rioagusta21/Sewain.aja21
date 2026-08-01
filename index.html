@@ -1348,6 +1348,11 @@ select.form-control option{background:var(--dark)}
             <div class="stat-num" id="stat-return">0</div>
             <div class="stat-label">Kembali Hari Ini</div>
           </div>
+          <div class="stat-card red">
+            <div class="stat-icon">💸</div>
+            <div class="stat-num" id="stat-unpaid">0</div>
+            <div class="stat-label">Belum Bayar</div>
+          </div>
         </div>
 
         <!-- Active Rentals -->
@@ -1434,6 +1439,11 @@ select.form-control option{background:var(--dark)}
             <option value="aktif">Aktif</option>
             <option value="selesai">Selesai</option>
           </select>
+          <select class="filter-select" id="rent-bayar" onchange="renderRentals()">
+            <option value="">Semua Pembayaran</option>
+            <option value="lunas">✅ Lunas</option>
+            <option value="belum">❌ Belum Bayar</option>
+          </select>
         </div>
         <div class="dash-card">
           <div style="overflow-x:auto">
@@ -1446,12 +1456,13 @@ select.form-control option{background:var(--dark)}
                   <th>Tanggal Sewa</th>
                   <th>Tanggal Kembali</th>
                   <th>Total</th>
+                  <th>Pembayaran</th>
                   <th>Status</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="rentals-body">
-                <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada transaksi penyewaan</div></div></td></tr>
+                <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada transaksi penyewaan</div></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -2306,6 +2317,8 @@ function renderOverview(){
   animateStat('stat-avail',avail.length);
   animateStat('stat-rented',rented.length);
   animateStat('stat-return',returnToday.length);
+  const unpaid=rentals.filter(r=>(r.pembayaran||'belum')==='belum'&&r.status==='aktif').length;
+  animateStat('stat-unpaid',unpaid);
 
   // Hero stats (landing)
   document.getElementById('hero-stat-total').textContent=shoes.length;
@@ -2776,17 +2789,19 @@ function renderRentals(){
   const shoes=getData(LS_SHOES);
   const search=(document.getElementById('rent-search')||{}).value?.toLowerCase()||'';
   const status=(document.getElementById('rent-status')||{}).value||'';
+  const bayar=(document.getElementById('rent-bayar')||{}).value||'';
   const today=todayStr();
 
   let filtered=rentals.filter(r=>{
     if(search&&!r.renterName.toLowerCase().includes(search)) return false;
     if(status&&r.status!==status) return false;
+    if(bayar&&(r.pembayaran||'belum')!==bayar) return false;
     return true;
   }).sort((a,b)=>b.createdAt>a.createdAt?1:-1);
 
   const tbody=document.getElementById('rentals-body');
   if(!filtered.length){
-    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada transaksi penyewaan</div></div></td></tr>';
+    tbody.innerHTML='<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Belum ada transaksi penyewaan</div></div></td></tr>';
     return;
   }
   tbody.innerHTML=filtered.map(r=>{
@@ -2794,6 +2809,10 @@ function renderRentals(){
     const isLate=r.status==='aktif'&&r.returnDate<today;
     const statusBadge=r.status==='selesai'?'badge-gray':isLate?'badge-red':'badge-orange';
     const statusText=r.status==='selesai'?'Selesai':isLate?'Terlambat':'Aktif';
+    // Status pembayaran — default 'belum' kalau belum pernah diset
+    const bayar=r.pembayaran||'belum';
+    const bayarBadge=bayar==='lunas'?'badge-green':'badge-red';
+    const bayarText=bayar==='lunas'?'✅ Lunas':'❌ Belum Bayar';
     return`<tr>
       <td>
         <div style="display:flex;gap:8px;align-items:center">
@@ -2815,6 +2834,14 @@ function renderRentals(){
       <td style="font-size:13px">${fmtDate(r.rentDate)}</td>
       <td style="font-size:13px">${fmtDate(r.returnDate)}</td>
       <td style="font-family:'Bebas Neue',sans-serif;color:var(--green);font-size:18px">${fmtRp(r.total)}</td>
+      <td>
+        <button onclick="togglePembayaran('${r.id}')"
+          class="badge ${bayarBadge}"
+          style="cursor:pointer;border:none;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px"
+          title="Klik untuk ubah status pembayaran">
+          ${bayarText}
+        </button>
+      </td>
       <td><span class="badge ${statusBadge}">${statusText}</span></td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -2841,6 +2868,16 @@ function markReturn(id){
       toast('Pengembalian berhasil dicatat!');
     }
   });
+}
+
+// Toggle status pembayaran: belum → lunas → belum (klik badge untuk ubah)
+function togglePembayaran(id){
+  const rental=getData(LS_RENTALS).find(r=>r.id===id);
+  if(!rental) return;
+  const current=rental.pembayaran||'belum';
+  const next=current==='lunas'?'belum':'lunas';
+  upsertDoc(LS_RENTALS,{...rental,pembayaran:next});
+  toast(next==='lunas'?'✅ Ditandai Lunas':'❌ Ditandai Belum Bayar', next==='lunas'?'success':'warning');
 }
 
 function deleteRental(id){
